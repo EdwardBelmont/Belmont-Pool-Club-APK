@@ -24,120 +24,164 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 4. Generar Icono Bola 8 y Splash (Estética Obsidiana/Púrpura)
-        run: |
-          pip install pillow
-          mkdir -p assets
-          python3 - << 'EOF'
-          from PIL import Image, ImageDraw, ImageFont, ImageFilter
-
-          def create_8ball_icon(size=1024):
-              # Fondo obsidiana púrpura oscuro
-              img = Image.new("RGBA", (size, size), (11, 7, 20, 255))
-              draw = ImageDraw.Draw(img)
-
-              # Resplandor neon púrpura detrás de la bola
-              glow = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-              gdraw = ImageDraw.Draw(glow)
-              gdraw.ellipse((size*0.08, size*0.08, size*0.92, size*0.92), fill=(147, 51, 234, 150))
-              gdraw.ellipse((size*0.14, size*0.14, size*0.86, size*0.86), fill=(192, 132, 252, 180))
-              glow = glow.filter(ImageFilter.GaussianBlur(radius=size*0.06))
-              img = Image.alpha_composite(img, glow)
-              draw = ImageDraw.Draw(img)
-
-              # Anillo exterior metálico púrpura
-              margin = int(size * 0.14)
-              draw.ellipse((margin-8, margin-8, size-margin+8, size-margin+8), fill=(168, 85, 247, 255))
-
-              # Cuerpo de la Bola 8 (negro obsidiana profundo)
-              draw.ellipse((margin, margin, size-margin, size-margin), fill=(12, 10, 18, 255))
-
-              # Brillo superior izquierdo (efecto cristal/billar)
-              shine = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-              sdraw = ImageDraw.Draw(shine)
-              sdraw.ellipse((int(size*0.24), int(size*0.20), int(size*0.52), int(size*0.40)), fill=(255, 255, 255, 55))
-              shine = shine.filter(ImageFilter.GaussianBlur(radius=size*0.02))
-              img = Image.alpha_composite(img, shine)
-              draw = ImageDraw.Draw(img)
-
-              # Círculo central blanco con borde violeta
-              c_margin = int(size * 0.33)
-              draw.ellipse((c_margin-6, c_margin-6, size-c_margin+6, size-c_margin+6), fill=(147, 51, 234, 255))
-              draw.ellipse((c_margin, c_margin, size-c_margin, size-c_margin), fill=(248, 250, 252, 255))
-
-              # Dibujar el número "8" geométrico perfecto en el centro
-              cx, cy = size // 2, size // 2
-              r_top = int(size * 0.065)
-              r_bot = int(size * 0.078)
-              stroke = int(size * 0.032)
-
-              # Anillo superior del 8
-              draw.ellipse((cx - r_top, cy - r_top*2 + 6, cx + r_top, cy + 6), fill=(18, 12, 34, 255))
-              draw.ellipse((cx - r_top + stroke, cy - r_top*2 + 6 + stroke, cx + r_top - stroke, cy + 6 - stroke), fill=(248, 250, 252, 255))
-
-              # Anillo inferior del 8
-              draw.ellipse((cx - r_bot, cy - 6, cx + r_bot, cy + r_bot*2 - 6), fill=(18, 12, 34, 255))
-              draw.ellipse((cx - r_bot + stroke, cy - 6 + stroke, cx + r_bot - stroke, cy + r_bot*2 - 6 - stroke), fill=(248, 250, 252, 255))
-
-              return img
-
-          icon = create_8ball_icon(1024)
-          icon.save("assets/icon-only.png")
-          icon.save("assets/icon-foreground.png")
-
-          # Fondo para Adaptive Icon
-          bg = Image.new("RGBA", (1024, 1024), (11, 7, 20, 255))
-          bg.save("assets/icon-background.png")
-
-          # Splash screen 2732x2732 con el icono centrado
-          splash = Image.new("RGBA", (2732, 2732), (11, 7, 20, 255))
-          icon_small = icon.resize((768, 768), Image.Resampling.LANCZOS)
-          splash.paste(icon_small, ((2732 - 768) // 2, (2732 - 768) // 2), icon_small)
-          splash.save("assets/splash.png")
-          splash.save("assets/splash-dark.png")
-          EOF
-
-      - name: 5. Preparar proyecto Capacitor y empaquetar index.html
+      - name: 4. Preparar proyecto Capacitor y empaquetar HTML
         run: |
           mkdir -p www
-          cp index.html www/index.html
+          if [ -f "index.html" ]; then
+            cp index.html www/index.html
+          else
+            FIRST_HTML=$(find . -maxdepth 2 -name "*.html" | head -n 1)
+            if [ -n "$FIRST_HTML" ]; then
+              cp "$FIRST_HTML" www/index.html
+            else
+              echo "ERROR: No se encontro index.html en la raiz del repositorio."
+              exit 1
+            fi
+          fi
 
-          npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/assets
+          cat << 'EOF' > package.json
+          {
+            "name": "belmont-pool-club",
+            "version": "1.0.0",
+            "description": "Belmont Pool Club",
+            "main": "index.js",
+            "private": true
+          }
+          EOF
+
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
 
           npx cap init "Belmont Pool Club" "com.edwardbelmont.poolclub" --web-dir www
           npx cap add android
           npx cap copy android
 
-          # Generar automáticamente todos los mipmaps, adaptive icons y splash screens en Android
-          npx capacitor-assets generate --android
-
-      - name: 6. Optimizar AndroidManifest (Horizontal, Red y Rendimiento)
+      - name: 5. Generar Icono Bola 8, Splash y Optimizar AndroidManifest
         run: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          # Habilitar tráfico de red para salas online y aceleración por hardware
-          sed -i 's/<application/<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"/g' "$MANIFEST"
+          python3 -m pip install pillow --break-system-packages || pip install pillow
+          cat << 'EOF' > setup_android_assets.py
+          import os
+          from PIL import Image, ImageDraw, ImageFilter
 
-          # Forzar modo horizontal (Landscape) para jugar billar cómodamente
-          sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:screenOrientation="sensorLandscape"/g' "$MANIFEST"
+          def create_8ball_icon(size=1024, is_foreground=False):
+              bg_color = (0, 0, 0, 0) if is_foreground else (11, 7, 20, 255)
+              img = Image.new("RGBA", (size, size), bg_color)
+              draw = ImageDraw.Draw(img)
 
-          # Asegurar permiso de vibración si no existe
-          if ! grep -q "android.permission.VIBRATE" "$MANIFEST"; then
-            sed -i 's/<\/manifest>/<uses-permission android:name="android.permission.VIBRATE" \/>
-<\/manifest>/g' "$MANIFEST"
-          fi
+              scale = 0.66 if is_foreground else 1.0
+              offset = int(size * (1.0 - scale) / 2)
+              s = int(size * scale)
 
-      - name: 7. Compilar APK instalable (Debug firmado automáticamente)
+              ball_layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+              bdraw = ImageDraw.Draw(ball_layer)
+
+              glow = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+              gdraw = ImageDraw.Draw(glow)
+              gdraw.ellipse((s*0.08, s*0.08, s*0.92, s*0.92), fill=(147, 51, 234, 150))
+              gdraw.ellipse((s*0.14, s*0.14, s*0.86, s*0.86), fill=(192, 132, 252, 180))
+              glow = glow.filter(ImageFilter.GaussianBlur(radius=s*0.05))
+              ball_layer = Image.alpha_composite(ball_layer, glow)
+              bdraw = ImageDraw.Draw(ball_layer)
+
+              margin = int(s * 0.14)
+              bdraw.ellipse((margin-6, margin-6, s-margin+6, s-margin+6), fill=(168, 85, 247, 255))
+              bdraw.ellipse((margin, margin, s-margin, s-margin), fill=(12, 10, 18, 255))
+
+              shine = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+              sdraw = ImageDraw.Draw(shine)
+              sdraw.ellipse((int(s*0.24), int(s*0.20), int(s*0.52), int(s*0.40)), fill=(255, 255, 255, 55))
+              shine = shine.filter(ImageFilter.GaussianBlur(radius=s*0.02))
+              ball_layer = Image.alpha_composite(ball_layer, shine)
+              bdraw = ImageDraw.Draw(ball_layer)
+
+              c_margin = int(s * 0.33)
+              bdraw.ellipse((c_margin-5, c_margin-5, s-c_margin+5, s-c_margin+5), fill=(147, 51, 234, 255))
+              bdraw.ellipse((c_margin, c_margin, s-c_margin, s-c_margin), fill=(248, 250, 252, 255))
+
+              cx, cy = s // 2, s // 2
+              r_top = int(s * 0.065)
+              r_bot = int(s * 0.078)
+              stroke = max(2, int(s * 0.032))
+
+              bdraw.ellipse((cx - r_top, cy - r_top*2 + 4, cx + r_top, cy + 4), fill=(18, 12, 34, 255))
+              bdraw.ellipse((cx - r_top + stroke, cy - r_top*2 + 4 + stroke, cx + r_top - stroke, cy + 4 - stroke), fill=(248, 250, 252, 255))
+
+              bdraw.ellipse((cx - r_bot, cy - 4, cx + r_bot, cy + r_bot*2 - 4), fill=(18, 12, 34, 255))
+              bdraw.ellipse((cx - r_bot + stroke, cy - 4 + stroke, cx + r_bot - stroke, cy + r_bot*2 - 4 - stroke), fill=(248, 250, 252, 255))
+
+              img.paste(ball_layer, (offset, offset), ball_layer)
+              return img
+
+          icon_full = create_8ball_icon(1024, is_foreground=False)
+          icon_fg = create_8ball_icon(1024, is_foreground=True)
+
+          res_dir = "android/app/src/main/res"
+          for root, dirs, files in os.walk(res_dir):
+              for file in files:
+                  full_path = os.path.join(root, file)
+                  if file in ("ic_launcher.png", "ic_launcher_round.png"):
+                      with Image.open(full_path) as orig:
+                          w, h = orig.size
+                      icon_full.resize((w, h), Image.Resampling.LANCZOS).save(full_path, "PNG")
+                  elif file == "ic_launcher_foreground.png":
+                      with Image.open(full_path) as orig:
+                          w, h = orig.size
+                      icon_fg.resize((w, h), Image.Resampling.LANCZOS).save(full_path, "PNG")
+                  elif file == "splash.png":
+                      with Image.open(full_path) as orig:
+                          w, h = orig.size
+                      splash = Image.new("RGBA", (w, h), (11, 7, 20, 255))
+                      side = int(min(w, h) * 0.35)
+                      logo = icon_full.resize((side, side), Image.Resampling.LANCZOS)
+                      splash.paste(logo, ((w - side) // 2, (h - side) // 2), logo)
+                      splash.save(full_path, "PNG")
+
+          bg_xml = os.path.join(res_dir, "values", "ic_launcher_background.xml")
+          if os.path.exists(bg_xml):
+              with open(bg_xml, "w", encoding="utf-8") as f:
+                  f.write('<?xml version="1.0" encoding="utf-8"?><resources><color name="ic_launcher_background">#0B0714</color></resources>')
+
+          manifest_path = "android/app/src/main/AndroidManifest.xml"
+          with open(manifest_path, "r", encoding="utf-8") as f:
+              content = f.read()
+
+          if 'android:usesCleartextTraffic="true"' not in content:
+              content = content.replace(
+                  "<application",
+                  '<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"',
+                  1
+              )
+
+          if 'android:screenOrientation="sensorLandscape"' not in content:
+              content = content.replace(
+                  'android:name=".MainActivity"',
+                  'android:name=".MainActivity" android:screenOrientation="sensorLandscape"',
+                  1
+              )
+
+          if "android.permission.VIBRATE" not in content:
+              content = content.replace(
+                  "</manifest>",
+                  '<uses-permission android:name="android.permission.VIBRATE" /></manifest>'
+              )
+
+          with open(manifest_path, "w", encoding="utf-8") as f:
+              f.write(content)
+
+          print("Iconos, Splash y AndroidManifest configurados con exito.")
+          EOF
+          python3 setup_android_assets.py
+
+      - name: 6. Compilar APK instalable (Debug firmado automaticamente)
         working-directory: ./android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: 8. Renombrar APK listo para instalar
+      - name: 7. Renombrar APK listo para instalar
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk BelmontPoolClub.apk
 
-      - name: 9. Subir APK como Descargable (Artifact)
+      - name: 8. Subir APK como Descargable (Artifact)
         uses: actions/upload-artifact@v4
         with:
           name: Belmont-Pool-Club-APK
