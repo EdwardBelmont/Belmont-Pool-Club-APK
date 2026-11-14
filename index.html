@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Belmont Pool Club — Edward vs Alejandra (Sin Tickets ∞)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --accent: #a855f7;
+            --accent-glow: rgba(168, 85, 247, 0.45);
+        }
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1a1025 0%, #09060e 70%, #050308 100%);
+            color: #f3e8ff;
+            overflow-x: hidden;
+        }
+        .font-display {
+            font-family: 'Cinzel', serif;
+        }
+        /* Custom Range / Power Slider */
+        .power-track {
+            background: linear-gradient(to bottom, #22c55e 0%, #eab308 50%, #ef4444 100%);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+        }
+        .neon-border {
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.25), inset 0 0 12px rgba(168, 85, 247, 0.12);
+        }
+        .active-turn-card {
+            border-color: #c084fc !important;
+            box-shadow: 0 0 22px rgba(192, 132, 252, 0.45), inset 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+        @keyframes floatReaction {
+            0% { transform: translateY(0) scale(0.6); opacity: 0; }
+            20% { transform: translateY(-15px) scale(1.15); opacity: 1; }
+            80% { transform: translateY(-55px) scale(1); opacity: 1; }
+            100% { transform: translateY(-75px) scale(0.8); opacity: 0; }
+        }
+        .floating-emoji {
+            animation: floatReaction 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- TOP NAVIGATION / HEADER -->
+    <header class="w-full px-3 py-2 border-b border-purple-900/40 bg-black/50 backdrop-blur-md z-30">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <!-- Brand -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-900 flex items-center justify-center shadow-lg shadow-purple-600/30 border border-purple-400/40">
+                    <span class="font-bold text-white text-lg">8</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-display font-extrabold text-sm sm:text-base tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-200 to-amber-200">
+                            BELMONT POOL CLUB
+                        </h1>
+                        <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            ∞ Tickets Libres
+                        </span>
+                    </div>
+                    <p id="modeStatusBadge" class="text-[11px] text-purple-300/70">Modo Local • Mesa Lista</p>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- Felt Color Selector -->
+                <div class="hidden md:flex items-center gap-1 bg-purple-950/50 border border-purple-800/40 rounded-lg px-2 py-1 text-xs">
+                    <span class="text-purple-300/70 mr-1"><i class="fa-solid fa-palette"></i> Paño:</span>
+                    <button onclick="setFeltTheme('amethyst')" title="Amatista Nocturno" class="w-4 h-4 rounded-full bg-purple-800 border border-white/50 hover:scale-110 transition"></button>
+                    <button onclick="setFeltTheme('emerald')" title="Clásico Esmeralda" class="w-4 h-4 rounded-full bg-emerald-700 border border-white/50 hover:scale-110 transition"></button>
+                    <button onclick="setFeltTheme('crimson')" title="Rojo Gótico" class="w-4 h-4 rounded-full bg-rose-900 border border-white/50 hover:scale-110 transition"></button>
+                    <button onclick="setFeltTheme('midnight')" title="Azul Espacial" class="w-4 h-4 rounded-full bg-slate-800 border border-white/50 hover:scale-110 transition"></button>
+                </div>
+
+                <!-- Sound Toggle -->
+                <button id="soundToggleBtn" onclick="toggleAudio()" class="px-2.5 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-900/70 border border-purple-700/40 text-purple-200 text-xs transition flex items-center gap-1.5">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-purple-400"></i>
+                    <span class="hidden sm:inline">Sonido</span>
+                </button>
+
+                <!-- Online / Room Modal Button -->
+                <button onclick="openLobbyModal()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-semibold text-xs shadow-md shadow-purple-600/30 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-wifi"></i>
+                    <span id="lobbyBtnLabel">Sala Online / Modos</span>
+                </button>
+
+                <!-- New Match Button -->
+                <button onclick="confirmResetMatch()" class="px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs transition flex items-center gap-1" title="Reiniciar Mesa">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">Nueva Partida</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HUD: PLAYERS & SCOREBOARD -->
+    <section class="w-full max-w-6xl mx-auto px-3 pt-2 z-20">
+        <div class="grid grid-cols-12 gap-2 items-center">
+            
+            <!-- PLAYER 1 CARD (Edward) -->
+            <div id="p1Card" class="col-span-5 bg-zinc-950/85 border-2 border-purple-900/40 rounded-2xl p-2.5 sm:p-3 transition-all duration-300 relative overflow-hidden">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-900 flex items-center justify-center font-bold text-sm sm:text-base text-white shadow border border-purple-300/30 shrink-0">
+                            <span id="p1Avatar">E</span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span id="p1NameDisplay" class="font-bold text-xs sm:text-sm text-white truncate">Edward</span>
+                                <span id="p1TurnDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping hidden"></span>
+                            </div>
+                            <span id="p1GroupBadge" class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-purple-950/90 text-purple-300 border border-purple-700/40">
+                                Mesa Abierta
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="text-[10px] uppercase tracking-wider text-purple-300/60 block">Victorias</span>
+                        <span id="p1Wins" class="font-display font-extrabold text-base sm:text-xl text-amber-300">0</span>
+                    </div>
+                </div>
+                <!-- Remaining Target Balls Tray -->
+                <div id="p1BallTray" class="mt-2 pt-1.5 border-t border-white/10 flex items-center gap-1 min-h-[22px] overflow-x-auto">
+                    <span class="text-[10px] text-zinc-400 italic">Sin grupo asignado</span>
+                </div>
+            </div>
+
+            <!-- CENTER STATUS / VS / ROOM CODE -->
+            <div class="col-span-2 flex flex-col items-center justify-center text-center px-1">
+                <div class="px-2.5 py-1 rounded-full bg-purple-950/80 border border-purple-600/40 shadow-inner mb-1">
+                    <span class="font-display font-bold text-xs sm:text-sm text-purple-200">VS</span>
+                </div>
+                <div id="roomCodeBadge" class="hidden cursor-pointer group" onclick="copyRoomCode()" title="Clic para copiar código">
+                    <span class="text-[10px] text-purple-300/70 block">SALA</span>
+                    <span id="roomCodeText" class="font-mono font-bold text-xs sm:text-sm text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-400/30 group-hover:bg-amber-500/20 transition">----</span>
+                </div>
+            </div>
+
+            <!-- PLAYER 2 CARD (Alejandra) -->
+            <div id="p2Card" class="col-span-5 bg-zinc-950/85 border-2 border-purple-900/40 rounded-2xl p-2.5 sm:p-3 transition-all duration-300 relative overflow-hidden">
+                <div class="flex items-center justify-between gap-2 flex-row-reverse sm:flex-row">
+                    <div class="text-left sm:text-left shrink-0">
+                        <span class="text-[10px] uppercase tracking-wider text-purple-300/60 block">Victorias</span>
+                        <span id="p2Wins" class="font-display font-extrabold text-base sm:text-xl text-amber-300">0</span>
+                    </div>
+                    <div class="flex items-center gap-2 min-w-0 flex-row-reverse text-right">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-fuchsia-600 to-rose-900 flex items-center justify-center font-bold text-sm sm:text-base text-white shadow border border-pink-300/30 shrink-0">
+                            <span id="p2Avatar">A</span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <span id="p2TurnDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping hidden"></span>
+                                <span id="p2NameDisplay" class="font-bold text-xs sm:text-sm text-white truncate">Alejandra</span>
+                            </div>
+                            <span id="p2GroupBadge" class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-purple-950/90 text-purple-300 border border-purple-700/40">
+                                Mesa Abierta
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Remaining Target Balls Tray -->
+                <div id="p2BallTray" class="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-end gap-1 min-h-[22px] overflow-x-auto">
+                    <span class="text-[10px] text-zinc-400 italic">Sin grupo asignado</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- LIVE GAME BANNER (Turn Info, Fouls, Ball in Hand Alert) -->
+        <div class="mt-2 flex items-center justify-between bg-black/60 border border-purple-800/40 rounded-xl px-3 py-1.5 backdrop-blur-sm">
+            <div class="flex items-center gap-2">
+                <i id="bannerIcon" class="fa-solid fa-bullseye text-purple-400 text-xs sm:text-sm"></i>
+                <p id="gameStatusBanner" class="text-xs sm:text-sm font-medium text-purple-100">
+                    Turno de <span class="text-amber-300 font-bold">Edward</span> — Tiro de Apertura (Bola en mano detrás de la línea)
+                </p>
+            </div>
+            <div id="ballInHandBadge" class="hidden items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-semibold animate-pulse">
+                <i class="fa-solid fa-hand-sparkles"></i>
+                <span>Bola en Mano (Arrastra la blanca)</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN POOL TABLE & CONTROLS WORKSPACE -->
+    <main class="flex-1 flex flex-col justify-center items-center w-full max-w-6xl mx-auto px-2 sm:px-4 py-2 relative">
+        
+        <!-- Floating Emoji Overlay Container -->
+        <div id="emojiOverlay" class="pointer-events-none fixed inset-0 z-40 overflow-hidden"></div>
+
+        <div class="w-full flex flex-col lg:flex-row items-center justify-center gap-3">
+            
+            <!-- LEFT / SIDE CONTROLS: POWER BAR & SPIN SELECTOR -->
+            <div class="w-full lg:w-20 flex lg:flex-col items-center justify-between gap-2 bg-zinc-950/90 border border-purple-900/50 rounded-2xl p-2.5 shadow-xl order-2 lg:order-1">
+                
+                <!-- English / Spin Control (Efecto) -->
+                <div class="flex items-center lg:flex-col gap-2">
+                    <div class="relative w-12 h-12 rounded-full bg-gradient-to-br from-white via-zinc-200 to-zinc-400 shadow-inner border-2 border-purple-400 cursor-pointer flex items-center justify-center" id="spinSelector" title="Efecto en la bola blanca (Toque para ajustar)">
+                        <!-- Crosshairs -->
+                        <div class="absolute w-full h-[1px] bg-zinc-400/70 pointer-events-none"></div>
+                        <div class="absolute h-full w-[1px] bg-zinc-400/70 pointer-events-none"></div>
+                        <!-- Red Spin Contact Dot -->
+                        <div id="spinDot" class="w-3 h-3 rounded-full bg-rose-600 shadow-sm border border-white pointer-events-none transition-transform duration-75" style="transform: translate(0px, 0px);"></div>
+                    </div>
+                    <div class="text-left lg:text-center">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-purple-300 block">Efecto</span>
+                        <button onclick="resetSpin()" class="text-[10px] text-zinc-400 hover:text-white underline">Centrar</button>
+                    </div>
+                </div>
+
+                <!-- Pull-Back Cue Power Meter -->
+                <div class="flex-1 flex lg:flex-col items-center gap-2 w-full">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 shrink-0">
+                        <i class="fa-solid fa-bolt"></i> Fuerza
+                    </span>
+                    
+                    <!-- Interactive Power Bar -->
+                    <div id="powerBarContainer" class="relative flex-1 lg:w-8 h-8 lg:h-52 rounded-xl power-track p-1 cursor-pointer select-none border border-white/20 flex items-center lg:items-start justify-start lg:justify-center overflow-hidden" title="Arrastra y suelta para disparar, o ajusta y pulsa TIRAR">
+                        <!-- Cue Graphic Inside Bar -->
+                        <div id="powerBarFill" class="h-full lg:w-full bg-black/65 backdrop-blur-[1px] transition-all duration-75 rounded-lg pointer-events-none" style="width: 35%; height: 35%;"></div>
+                        <span id="powerValueText" class="absolute inset-0 flex items-center justify-center font-mono font-extrabold text-xs text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] pointer-events-none">
+                            45%
+                        </span>
+                    </div>
+
+                    <!-- Direct Shoot Button (Great for mobile precision) -->
+                    <button id="shootBtn" onclick="executeShotFromButton()" class="px-4 lg:px-2 py-2 lg:w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 active:scale-95 text-black font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/25 transition shrink-0">
+                        ¡TIRAR!
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- CENTER: THE POOL TABLE CANVAS -->
+            <div id="tableWrapper" class="w-full flex-1 flex flex-col items-center justify-center order-1 lg:order-2 relative">
+                <div class="relative w-full aspect-[2/1] max-w-[920px] rounded-[24px] p-1.5 sm:p-2 bg-gradient-to-b from-amber-900/50 via-stone-900 to-black shadow-[0_20px_60px_rgba(0,0,0,0.9)] neon-border">
+                    <canvas id="poolCanvas" class="w-full h-full rounded-[18px] block cursor-crosshair"></canvas>
+                </div>
+
+                <!-- Fine-Tune Aiming Bar + Quick Emojis Footer -->
+                <div class="w-full max-w-[920px] mt-2 flex flex-wrap items-center justify-between gap-2 bg-zinc-950/80 border border-purple-900/40 rounded-xl px-3 py-1.5">
+                    
+                    <!-- Precision Aim Buttons -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] text-purple-300/80 mr-1"><i class="fa-solid fa-compass"></i> Mira Fina:</span>
+                        <button onpointerdown="startFineAim(-1)" onpointerup="stopFineAim()" onpointerleave="stopFineAim()" class="px-2.5 py-1 rounded-lg bg-purple-950 hover:bg-purple-800 border border-purple-700/50 text-xs text-purple-200 active:scale-95">
+                            <i class="fa-solid fa-rotate-left"></i> Izq
+                        </button>
+                        <button onpointerdown="startFineAim(1)" onpointerup="stopFineAim()" onpointerleave="stopFineAim()" class="px-2.5 py-1 rounded-lg bg-purple-950 hover:bg-purple-800 border border-purple-700/50 text-xs text-purple-200 active:scale-95">
+                            Der <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                        <span class="hidden sm:inline text-[11px] text-zinc-400 ml-2">
+                            Tip: Toca o arrastra sobre la mesa para apuntar • Usa la barra o jala el taco para tirar
+                        </span>
+                    </div>
+
+                    <!-- Romantic / Competitive Quick Reactions for Edward & Alejandra -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-[10px] text-purple-300/70 mr-1 hidden sm:inline">Reacción:</span>
+                        <button onclick="sendReaction('💜', '¡Con todo mi amor!')" class="hover:scale-125 transition text-base px-1" title="Enviar corazón">💜</button>
+                        <button onclick="sendReaction('🔥', '¡Qué buen tiro!')" class="hover:scale-125 transition text-base px-1" title="Qué buen tiro">🔥</button>
+                        <button onclick="sendReaction('😎', 'Calculado al milímetro')" class="hover:scale-125 transition text-base px-1" title="Calculado">😎</button>
+                        <button onclick="sendReaction('😱', '¡Casi entra!')" class="hover:scale-125 transition text-base px-1" title="Casi">😱</button>
+                        <button onclick="sendReaction('😘', 'Un besito de suerte')" class="hover:scale-125 transition text-base px-1" title="Beso de suerte">😘</button>
+                        <button onclick="sendReaction('🎱', '¡Voy por la 8!')" class="hover:scale-125 transition text-base px-1" title="Voy por la 8">🎱</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL: LOBBY (MODO LOCAL / MODO SALA ONLINE FIREBASE) -->
+    <div id="lobbyModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-zinc-950 border-2 border-purple-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between pb-3 border-b border-purple-900/50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-crown text-amber-400"></i>
+                    <h2 class="font-display font-bold text-lg text-white">Salón Privado Belmont</h2>
+                </div>
+                <button onclick="closeLobbyModal()" class="w-8 h-8 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Player Names Customization -->
+            <div class="mt-4 space-y-3">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-purple-300">Nombres de los Jugadores</label>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <span class="text-[11px] text-zinc-400 block mb-1">Jugador 1 (Anfitrión)</span>
+                        <input id="inputP1Name" type="text" value="Edward" maxlength="16" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-purple-800/60 text-white text-sm focus:outline-none focus:border-purple-400">
+                    </div>
+                    <div>
+                        <span class="text-[11px] text-zinc-400 block mb-1">Jugador 2 (Invitada)</span>
+                        <input id="inputP2Name" type="text" value="Alejandra" maxlength="16" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-purple-800/60 text-white text-sm focus:outline-none focus:border-purple-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Tabs -->
+            <div class="mt-5 pt-4 border-t border-purple-900/40 space-y-4">
+                <!-- Option 1: Local Instant Play -->
+                <div class="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-800/40 flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="font-bold text-sm text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-mobile-screen-button text-purple-400"></i>
+                            Modo Local (Mismo Dispositivo)
+                        </h3>
+                        <p class="text-xs text-zinc-400 mt-0.5">Jueguen pasándose el turno al instante sin conexión.</p>
+                    </div>
+                    <button onclick="startLocalMode()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shrink-0 shadow">
+                        Jugar Local
+                    </button>
+                </div>
+
+                <!-- Option 2: Online Real-Time Room -->
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-purple-950/60 to-fuchsia-950/40 border border-purple-500/40 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-sm text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-earth-americas text-emerald-400"></i>
+                            Modo Online en Tiempo Real
+                        </h3>
+                        <span id="firebaseStatusDot" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            Conectando...
+                        </span>
+                    </div>
+                    <p class="text-xs text-purple-200/80">
+                        Crea una sala y pásale el código de 4 letras a Alejandra para jugar cada quien desde su celular o PC.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <button onclick="createOnlineRoom()" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i> Crear Sala (Ser J1)
+                        </button>
+
+                        <div class="flex gap-1.5">
+                            <input id="joinCodeInput" type="text" placeholder="CÓDIGO" maxlength="4" class="w-24 px-2.5 py-2 rounded-xl bg-black/70 border border-purple-500/50 text-center font-mono font-bold uppercase text-amber-300 text-sm focus:outline-none">
+                            <button onclick="joinOnlineRoom()" class="flex-1 py-2 px-3 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-xs shadow-lg">
+                                Unirse (J2)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="lobbyFeedback" class="text-xs text-amber-300 font-medium hidden pt-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: VICTORY / END OF MATCH -->
+    <div id="victoryModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-zinc-950 border-2 border-amber-400/60 rounded-3xl max-w-md w-full p-6 text-center shadow-[0_0_50px_rgba(251,191,36,0.25)]">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-3xl text-black shadow-lg mb-3">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 id="winnerTitle" class="font-display font-extrabold text-2xl text-amber-300">¡Victoria de Edward!</h2>
+            <p id="winnerReason" class="text-sm text-purple-200 mt-1">Emboque legal de la Bola 8.</p>
+
+            <div class="my-5 p-3 rounded-2xl bg-purple-950/40 border border-purple-800/50 flex items-center justify-around">
+                <div>
+                    <span id="modalP1Name" class="text-xs text-zinc-400 block">Edward</span>
+                    <span id="modalP1Score" class="font-display font-bold text-2xl text-white">1</span>
+                </div>
+                <span class="text-xs font-bold text-purple-400 uppercase">Marcador Global</span>
+                <div>
+                    <span id="modalP2Name" class="text-xs text-zinc-400 block">Alejandra</span>
+                    <span id="modalP2Score" class="font-display font-bold text-2xl text-white">0</span>
+                </div>
+            </div>
+
+            <button onclick="playRematch()" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-amber-500 hover:opacity-95 text-white font-extrabold text-sm uppercase tracking-wider shadow-xl transition">
+                <i class="fa-solid fa-infinity mr-1"></i> Revancha Inmediata (Gratis)
+            </button>
+        </div>
+    </div>
+
+    <!-- FIREBASE & COMPLETE 8-BALL POOL ENGINE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ============================================================================
+        // 1. AUDIO SYNTHESIZER (Web Audio API - Realistic Billiard Sounds)
+        // ============================================================================
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBallHitSound(impactSpeed) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const vol = Math.min(1, Math.max(0.05, impactSpeed / 18));
+            const now = audioCtx.currentTime;
+
+            // Sharp clack transient
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(1850 + Math.random() * 250, now);
+            osc.frequency.exponentialRampToValueAtTime(420, now + 0.045);
+
+            gain.gain.setValueAtTime(vol * 0.65, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.06);
+        }
+
+        function playCueStrikeSound(powerRatio) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(320 + powerRatio * 200, now);
+            osc.frequency.exponentialRampToValueAtTime(90, now + 0.09);
+
+            gain.gain.setValueAtTime(Math.max(0.15, powerRatio * 0.7), now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.11);
+        }
+
+        function playCushionSound(speed) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const vol = Math.min(0.5, Math.max(0.04, speed / 22));
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(55, now + 0.08);
+
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.09);
+        }
+
+        function playPocketSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            [240, 320, 190].forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+                osc.frequency.exponentialRampToValueAtTime(80, now + idx * 0.05 + 0.12);
+                gain.gain.setValueAtTime(0.35, now + idx * 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.13);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + idx * 0.05);
+                osc.stop(now + idx * 0.05 + 0.14);
+            });
+        }
+
+        function playVictorySound() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + i * 0.11);
+                gain.gain.setValueAtTime(0.28, now + i * 0.11);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.11 + 0.45);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + i * 0.11);
+                osc.stop(now + i * 0.11 + 0.46);
+            });
+        }
+
+        window.toggleAudio = function() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.className = soundEnabled ? 'fa-solid fa-volume-high text-purple-400' : 'fa-solid fa-volume-xmark text-zinc-500';
+        };
+
+        // ============================================================================
+        // 2. TABLE GEOMETRY, THEMES & BALL DEFINITIONS
+        // ============================================================================
+        const canvas = document.getElementById('poolCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Logical coordinate system (Fixed internal resolution for deterministic physics across devices)
+        const LOGICAL_W = 1000;
+        const LOGICAL_H = 500;
+        canvas.width = LOGICAL_W;
+        canvas.height = LOGICAL_H;
+
+        const RAIL_SIZE = 44;
+        const PLAY_LEFT = RAIL_SIZE;
+        const PLAY_RIGHT = LOGICAL_W - RAIL_SIZE;
+        const PLAY_TOP = RAIL_SIZE;
+        const PLAY_BOTTOM = LOGICAL_H - RAIL_SIZE;
+        const HEAD_STRING_X = PLAY_LEFT + (PLAY_RIGHT - PLAY_LEFT) * 0.25;
+        const FOOT_SPOT_X = PLAY_LEFT + (PLAY_RIGHT - PLAY_LEFT) * 0.74;
+        const CENTER_Y = LOGICAL_H / 2;
+
+        const BALL_RADIUS = 13.5;
+        const POCKET_RADIUS_CORNER = 25;
+        const POCKET_RADIUS_SIDE = 23;
+
+        const POCKETS = [
+            { x: PLAY_LEFT + 3, y: PLAY_TOP + 3, r: POCKET_RADIUS_CORNER },
+            { x: LOGICAL_W / 2, y: PLAY_TOP - 4, r: POCKET_RADIUS_SIDE },
+            { x: PLAY_RIGHT - 3, y: PLAY_TOP + 3, r: POCKET_RADIUS_CORNER },
+            { x: PLAY_LEFT + 3, y: PLAY_BOTTOM - 3, r: POCKET_RADIUS_CORNER },
+            { x: LOGICAL_W / 2, y: PLAY_BOTTOM + 4, r: POCKET_RADIUS_SIDE },
+            { x: PLAY_RIGHT - 3, y: PLAY_BOTTOM - 3, r: POCKET_RADIUS_CORNER }
+        ];
+
+        const FELT_THEMES = {
+            amethyst: { inner: '#2e1065', outer: '#170736', line: 'rgba(216, 180, 254, 0.25)' },
+            emerald:  { inner: '#065f46', outer: '#022c22', line: 'rgba(167, 243, 208, 0.25)' },
+            crimson:  { inner: '#881337', outer: '#4c0519', line: 'rgba(254, 205, 211, 0.25)' },
+            midnight: { inner: '#1e293b', outer: '#0f172a', line: 'rgba(148, 163, 184, 0.25)' }
+        };
+        let currentFelt = FELT_THEMES.amethyst;
+
+        window.setFeltTheme = function(themeKey) {
+            if (FELT_THEMES[themeKey]) {
+                currentFelt = FELT_THEMES[themeKey];
+            }
+        };
+
+        // Official Pool Ball Colors (1-7 Solids/Lisas, 8 Black, 9-15 Stripes/Rayadas)
+        const BALL_COLORS = {
+            0:  '#f8fafc', // Cue ball
+            1:  '#eab308', // Yellow
+            2:  '#2563eb', // Blue
+            3:  '#dc2626', // Red
+            4:  '#7c3aed', // Purple
+            5:  '#ea580c', // Orange
+            6:  '#16a34a', // Green
+            7:  '#881337', // Burgundy/Maroon
+            8:  '#09090b', // 8-Ball Black
+            9:  '#eab308',
+            10: '#2563eb',
+            11: '#dc2626',
+            12: '#7c3aed',
+            13: '#ea580c',
+            14: '#16a34a',
+            15: '#881337'
+        };
+
+        // ============================================================================
+        // 3. GAME STATE & RULES VARIABLES
+        // ============================================================================
+        let balls = [];
+        let pocketAnimations = [];
+
+        let gameState = {
+            mode: 'local', // 'local' or 'online'
+            roomCode: null,
+            myPlayerSlot: 1, // 1 or 2 (in online mode)
+            currentPlayer: 1, // 1 = Edward, 2 = Alejandra
+            p1Name: 'Edward',
+            p2Name: 'Alejandra',
+            p1Wins: 0,
+            p2Wins: 0,
+            p1Group: null, // 'solids' (1-7) | 'stripes' (9-15) | null
+            p2Group: null,
+            isBreakShot: true,
+            ballInHand: true, // Starts with cue ball in kitchen on break
+            isSimulating: false,
+            gameOver: false,
+            winner: null,
+            winReason: '',
+            statusMessage: 'Tiro de Apertura — Bola en mano detrás de la línea',
+            shotSeq: 0
+        };
+
+        // Shot Tracking for 8-Ball Rules Evaluation
+        let turnTracker = {
+            firstHitBallId: null,
+            pottedBallIds: [],
+            cushionHitsAfterContact: 0
+        };
+
+        // Aiming, Power & Spin Controls
+        let aimAngle = 0; // Radians
+        let shotPower = 0.45; // 0.05 to 1.0
+        let cueSpin = { x: 0, y: 0 }; // -1 to 1 (x = side english, y = top/back spin)
+        let isDraggingAim = false;
+        let isDraggingCueBall = false;
+        let isDraggingPower = false;
+        let fineAimInterval = null;
+
+        // ============================================================================
+        // 4. INITIALIZATION & RACKING THE 15 BALLS
+        // ============================================================================
+        function createRack() {
+            balls = [];
+            pocketAnimations = [];
+
+            // 0: Cue Ball
+            balls.push({
+                id: 0,
+                x: HEAD_STRING_X - 30,
+                y: CENTER_Y,
+                vx: 0,
+                vy: 0,
+                potted: false
+            });
+
+            // Official 8-Ball Triangle Rack Order:
+            // Apex at foot spot, 8-ball in center of row 3, opposite corners are 1 solid and 1 stripe
+            const rackLayout = [
+                [1],
+                [9, 2],
+                [3, 8, 10],
+                [11, 4, 12, 5],
+                [6, 13, 14, 7, 15]
+            ];
+
+            const rowSpacing = BALL_RADIUS * Math.sqrt(3) + 0.45;
+            const colSpacing = BALL_RADIUS * 2 + 0.45;
+
+            for (let row = 0; row < rackLayout.length; row++) {
+                const rowBalls = rackLayout[row];
+                const startY = CENTER_Y - ((rowBalls.length - 1) * colSpacing) / 2;
+                for (let col = 0; col < rowBalls.length; col++) {
+                    const id = rowBalls[col];
+                    balls.push({
+                        id: id,
+                        x: FOOT_SPOT_X + row * rowSpacing + (Math.random() - 0.5) * 0.2,
+                        y: startY + col * colSpacing + (Math.random() - 0.5) * 0.2,
+                        vx: 0,
+                        vy: 0,
+                        potted: false
+                    });
+                }
+            }
+            // Sort by ID for consistency
+            balls.sort((a, b) => a.id - b.id);
+        }
+
+        function resetMatch(startingPlayer = 1) {
+            createRack();
+            gameState.currentPlayer = startingPlayer;
+            gameState.p1Group = null;
+            gameState.p2Group = null;
+            gameState.isBreakShot = true;
+            gameState.ballInHand = true;
+            gameState.isSimulating = false;
+            gameState.gameOver = false;
+            gameState.winner = null;
+            gameState.winReason = '';
+            aimAngle = 0;
+            resetSpin();
+
+            const activeName = getPlayerName(startingPlayer);
+            gameState.statusMessage = `Turno de ${activeName} — Tiro de Apertura`;
+            updateHUD();
+
+            if (gameState.mode === 'online' && gameState.roomCode) {
+                syncRoomStateToCloud('reset');
+            }
+        }
+
+        window.confirmResetMatch = function() {
+            const nextStarter = gameState.currentPlayer === 1 ? 2 : 1;
+            resetMatch(nextStarter);
+        };
+
+        window.playRematch = function() {
+            document.getElementById('victoryModal').classList.add('hidden');
+            const loserStarts = gameState.winner === 1 ? 2 : 1;
+            resetMatch(loserStarts);
+        };
+
+        function getPlayerName(slot) {
+            return slot === 1 ? gameState.p1Name : gameState.p2Name;
+        }
+
+        function getBallGroup(id) {
+            if (id >= 1 && id <= 7) return 'solids';
+            if (id >= 9 && id <= 15) return 'stripes';
+            if (id === 8) return 'eight';
+            return 'cue';
+        }
+
+        function getRemainingCount(group) {
+            if (!group) return 7;
+            return balls.filter(b => !b.potted && getBallGroup(b.id) === group).length;
+        }
+
+        function canCurrentPlayerAct() {
+            if (gameState.gameOver || gameState.isSimulating) return false;
+            if (gameState.mode === 'online') {
+                return gameState.currentPlayer === gameState.myPlayerSlot;
+            }
+            return true;
+        }
+
+        // ============================================================================
+        // 5. RIGID-BODY 2D BILLIARD PHYSICS ENGINE (SUB-STEPPED)
+        // ============================================================================
+        const SUB_STEPS = 8;
+        const FRICTION = 0.9918;
+        const MIN_VELOCITY = 0.035;
+        const RESTITUTION_BALL = 0.96;
+        const RESTITUTION_RAIL = 0.78;
+
+        function stepPhysics() {
+            if (!gameState.isSimulating) return;
+
+            let anyMoving = false;
+
+            for (let step = 0; step < SUB_STEPS; step++) {
+                // 1. Move balls
+                for (let i = 0; i < balls.length; i++) {
+                    const b = balls[i];
+                    if (b.potted) continue;
+
+                    b.x += b.vx / SUB_STEPS;
+                    b.y += b.vy / SUB_STEPS;
+
+                    // Check pocket capture
+                    for (let p = 0; p < POCKETS.length; p++) {
+                        const pocket = POCKETS[p];
+                        const dx = b.x - pocket.x;
+                        const dy = b.y - pocket.y;
+                        const dist = Math.hypot(dx, dy);
+
+                        if (dist < pocket.r) {
+                            b.potted = true;
+                            b.vx = 0;
+                            b.vy = 0;
+                            turnTracker.pottedBallIds.push(b.id);
+                            playPocketSound();
+
+                            // Visual drop animation
+                            pocketAnimations.push({
+                                id: b.id,
+                                x: b.x,
+                                y: b.y,
+                                tx: pocket.x,
+                                ty: pocket.y,
+                                scale: 1.0
+                            });
+                            break;
+                        }
+                    }
+
+                    if (b.potted) continue;
+
+                    // 2. Rail / Cushion Collisions (skip near pocket mouths so balls enter smoothly)
+                    const nearPocket = POCKETS.some(pk => Math.hypot(b.x - pk.x, b.y - pk.y) < pk.r + 12);
+                    if (!nearPocket) {
+                        if (b.x - BALL_RADIUS < PLAY_LEFT) {
+                            b.x = PLAY_LEFT + BALL_RADIUS;
+                            b.vx = -b.vx * RESTITUTION_RAIL;
+                            if (turnTracker.firstHitBallId !== null) turnTracker.cushionHitsAfterContact++;
+                            if (step === 0) playCushionSound(Math.abs(b.vx));
+                        } else if (b.x + BALL_RADIUS > PLAY_RIGHT) {
+                            b.x = PLAY_RIGHT - BALL_RADIUS;
+                            b.vx = -b.vx * RESTITUTION_RAIL;
+                            if (turnTracker.firstHitBallId !== null) turnTracker.cushionHitsAfterContact++;
+                            if (step === 0) playCushionSound(Math.abs(b.vx));
+                        }
+
+                        if (b.y - BALL_RADIUS < PLAY_TOP) {
+                            b.y = PLAY_TOP + BALL_RADIUS;
+                            b.vy = -b.vy * RESTITUTION_RAIL;
+                            if (turnTracker.firstHitBallId !== null) turnTracker.cushionHitsAfterContact++;
+                            if (step === 0) playCushionSound(Math.abs(b.vy));
+                        } else if (b.y + BALL_RADIUS > PLAY_BOTTOM) {
+                            b.y = PLAY_BOTTOM - BALL_RADIUS;
+                            b.vy = -b.vy * RESTITUTION_RAIL;
+                            if (turnTracker.firstHitBallId !== null) turnTracker.cushionHitsAfterContact++;
+                            if (step === 0) playCushionSound(Math.abs(b.vy));
+                        }
+                    } else {
+                        // Hard boundary behind pocket leather
+                        b.x = Math.max(PLAY_LEFT - 12, Math.min(PLAY_RIGHT + 12, b.x));
+                        b.y = Math.max(PLAY_TOP - 12, Math.min(PLAY_BOTTOM + 12, b.y));
+                    }
+                }
+
+                // 3. Ball-to-Ball Elastic Collisions
+                for (let i = 0; i < balls.length; i++) {
+                    const b1 = balls[i];
+                    if (b1.potted) continue;
+
+                    for (let j = i + 1; j < balls.length; j++) {
+                        const b2 = balls[j];
+                        if (b2.potted) continue;
+
+                        const dx = b2.x - b1.x;
+                        const dy = b2.y - b1.y;
+                        const dist = Math.hypot(dx, dy);
+                        const minDist = BALL_RADIUS * 2;
+
+                        if (dist > 0 && dist < minDist) {
+                            // Record first object ball struck by cue ball
+                            if (b1.id === 0 && turnTracker.firstHitBallId === null) {
+                                turnTracker.firstHitBallId = b2.id;
+                            } else if (b2.id === 0 && turnTracker.firstHitBallId === null) {
+                                turnTracker.firstHitBallId = b1.id;
+                            }
+
+                            // Normal vector
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+
+                            // Separate overlapping spheres
+                            const overlap = (minDist - dist) * 0.5;
+                            b1.x -= nx * overlap;
+                            b1.y -= ny * overlap;
+                            b2.x += nx * overlap;
+                            b2.y += ny * overlap;
+
+                            // Relative velocity along normal
+                            const kx = b1.vx - b2.vx;
+                            const ky = b1.vy - b2.vy;
+                            const p = nx * kx + ny * ky;
+
+                            if (p > 0) {
+                                playBallHitSound(p);
+                                const impulse = p * RESTITUTION_BALL;
+                                b1.vx -= impulse * nx;
+                                b1.vy -= impulse * ny;
+                                b2.vx += impulse * nx;
+                                b2.vy += impulse * ny;
+
+                                // Apply Cue Spin (English) effect on first impact of cue ball
+                                if ((b1.id === 0 || b2.id === 0) && (cueSpin.x !== 0 || cueSpin.y !== 0)) {
+                                    const cue = b1.id === 0 ? b1 : b2;
+                                    // Top/Back spin pushes or pulls along initial shot angle
+                                    cue.vx += Math.cos(aimAngle) * cueSpin.y * 2.6;
+                                    cue.vy += Math.sin(aimAngle) * cueSpin.y * 2.6;
+                                    // Side spin deflects perpendicular
+                                    cue.vx += -Math.sin(aimAngle) * cueSpin.x * 1.8;
+                                    cue.vy += Math.cos(aimAngle) * cueSpin.x * 1.8;
+                                    // Consume spin after first contact
+                                    cueSpin.x = 0;
+                                    cueSpin.y = 0;
+                                    updateSpinUI();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Apply rolling friction once per frame
+            for (let i = 0; i < balls.length; i++) {
+                const b = balls[i];
+                if (b.potted) continue;
+
+                b.vx *= FRICTION;
+                b.vy *= FRICTION;
+
+                const speed = Math.hypot(b.vx, b.vy);
+                if (speed < MIN_VELOCITY) {
+                    b.vx = 0;
+                    b.vy = 0;
+                } else {
+                    anyMoving = true;
+                }
+            }
+
+            // When all balls come to rest, evaluate 8-Ball rules!
+            if (!anyMoving) {
+                gameState.isSimulating = false;
+                evaluateTurnOutcome();
+            }
+        }
+
+        // ============================================================================
+        // 6. COMPLETE 8-BALL RULES EVALUATION
+        // ============================================================================
+        function evaluateTurnOutcome() {
+            const shooter = gameState.currentPlayer;
+            const opponent = shooter === 1 ? 2 : 1;
+            const shooterName = getPlayerName(shooter);
+            const opponentName = getPlayerName(opponent);
+            let shooterGroup = shooter === 1 ? gameState.p1Group : gameState.p2Group;
+
+            const potted = turnTracker.pottedBallIds;
+            const scratched = potted.includes(0);
+            const pottedEight = potted.includes(8);
+            const firstHit = turnTracker.firstHitBallId;
+
+            // Respawn cue ball if scratched
+            if (scratched) {
+                const cueBall = balls[0];
+                cueBall.potted = false;
+                cueBall.vx = 0;
+                cueBall.vy = 0;
+                placeCueBallSafely(HEAD_STRING_X - 30, CENTER_Y);
+            }
+
+            // 1. Check 8-Ball Potted Conditions
+            if (pottedEight) {
+                if (gameState.isBreakShot) {
+                    // Spotting 8-ball if potted on break (friendly official rule) or win if preferred; let's re-spot 8-ball so game doesn't end by luck on break unless they want! Actually in standard pool, potting 8 on break spots it back on foot spot. Let's re-spot 8-ball if on break!
+                    const eightBall = balls.find(b => b.id === 8);
+                    eightBall.potted = false;
+                    eightBall.vx = 0;
+                    eightBall.vy = 0;
+                    placeBallAtSpot(eightBall, FOOT_SPOT_X, CENTER_Y);
+                } else {
+                    const remainingGroupBalls = getRemainingCount(shooterGroup);
+                    const hadClearedGroup = shooterGroup !== null && remainingGroupBalls === 0;
+
+                    if (hadClearedGroup && !scratched && firstHit === 8) {
+                        // LEGAL WIN!
+                        declareWinner(shooter, `¡${shooterName} embocó la Bola 8 limpiamente!`);
+                        return;
+                    } else {
+                        // LOSS BY FOUL ON 8-BALL
+                        const reason = scratched
+                            ? `${shooterName} metió la Bola 8 pero cometió falta con la bola blanca.`
+                            : `${shooterName} metió la Bola 8 antes de limpiar su grupo.`;
+                        declareWinner(opponent, reason);
+                        return;
+                    }
+                }
+            }
+
+            // 2. Check Foul Conditions
+            let isFoul = false;
+            let foulReason = '';
+
+            if (scratched) {
+                isFoul = true;
+                foulReason = 'Bola blanca embocada (Falta)';
+            } else if (firstHit === null) {
+                isFoul = true;
+                foulReason = 'La bola blanca no tocó ninguna bola (Falta)';
+            } else if (shooterGroup !== null) {
+                // Table already assigned: shooter must hit their own group first (or 8-ball if 0 remaining)
+                const remaining = getRemainingCount(shooterGroup);
+                const firstHitGroup = getBallGroup(firstHit);
+                if (remaining > 0 && firstHitGroup !== shooterGroup) {
+                    isFoul = true;
+                    foulReason = `Tocó primero una bola del grupo contrario (Falta)`;
+                } else if (remaining === 0 && firstHit !== 8) {
+                    isFoul = true;
+                    foulReason = `Debía golpear la Bola 8 primero (Falta)`;
+                }
+            } else if (!gameState.isBreakShot && firstHit === 8) {
+                isFoul = true;
+                foulReason = 'Tocó la Bola 8 primero con mesa abierta (Falta)';
+            }
+
+            // 3. Assign Groups if Table was Open (and not the break shot)
+            let newlyAssignedText = '';
+            const pottedSolids = potted.filter(id => id >= 1 && id <= 7);
+            const pottedStripes = potted.filter(id => id >= 9 && id <= 15);
+
+            if (!isFoul && !gameState.isBreakShot && shooterGroup === null) {
+                if (pottedSolids.length > 0 && pottedStripes.length === 0) {
+                    assignGroups(shooter, 'solids');
+                    shooterGroup = 'solids';
+                    newlyAssignedText = ` • ¡${shooterName} juega con Lisas (1-7)!`;
+                } else if (pottedStripes.length > 0 && pottedSolids.length === 0) {
+                    assignGroups(shooter, 'stripes');
+                    shooterGroup = 'stripes';
+                    newlyAssignedText = ` • ¡${shooterName} juega con Rayadas (9-15)!`;
+                } else if (pottedSolids.length > 0 && pottedStripes.length > 0) {
+                    // First hit determines or solids if first potted
+                    const firstPottedGroup = getBallGroup(potted.find(id => id !== 0 && id !== 8));
+                    assignGroups(shooter, firstPottedGroup);
+                    shooterGroup = firstPottedGroup;
+                    const label = firstPottedGroup === 'solids' ? 'Lisas (1-7)' : 'Rayadas (9-15)';
+                    newlyAssignedText = ` • ¡${shooterName} juega con ${label}!`;
+                }
+            }
+
+            gameState.isBreakShot = false;
+
+            // 4. Determine Next Turn & Ball-in-Hand
+            if (isFoul) {
+                gameState.currentPlayer = opponent;
+                gameState.ballInHand = true;
+                gameState.statusMessage = `${foulReason} — Turno de ${opponentName} con Bola en Mano`;
+            } else {
+                // Check if shooter legally potted at least one eligible ball
+                let keepTurn = false;
+                if (shooterGroup === null) {
+                    // Open table (e.g., potted on break or open shot)
+                    keepTurn = (pottedSolids.length > 0 || pottedStripes.length > 0);
+                } else if (shooterGroup === 'solids') {
+                    keepTurn = pottedSolids.length > 0;
+                } else if (shooterGroup === 'stripes') {
+                    keepTurn = pottedStripes.length > 0;
+                }
+
+                gameState.ballInHand = false;
+
+                if (keepTurn) {
+                    gameState.currentPlayer = shooter;
+                    const rem = getRemainingCount(shooterGroup);
+                    const nextTargetMsg = (shooterGroup && rem === 0) ? '¡Ahora ve por la Bola 8!' : 'Continúa tirando';
+                    gameState.statusMessage = `¡Buen tiro de ${shooterName}! ${nextTargetMsg}${newlyAssignedText}`;
+                } else {
+                    gameState.currentPlayer = opponent;
+                    gameState.statusMessage = `Turno de ${opponentName}${newlyAssignedText}`;
+                }
+            }
+
+            updateHUD();
+
+            // Sync state if Online and this client was the active shooter
+            if (gameState.mode === 'online' && gameState.roomCode) {
+                syncRoomStateToCloud('turn_end');
+            }
+        }
+
+        function assignGroups(shooterSlot, group) {
+            const otherGroup = group === 'solids' ? 'stripes' : 'solids';
+            if (shooterSlot === 1) {
+                gameState.p1Group = group;
+                gameState.p2Group = otherGroup;
+            } else {
+                gameState.p2Group = group;
+                gameState.p1Group = otherGroup;
+            }
+        }
+
+        function declareWinner(winnerSlot, reason) {
+            gameState.gameOver = true;
+            gameState.winner = winnerSlot;
+            gameState.winReason = reason;
+            if (winnerSlot === 1) gameState.p1Wins++;
+            else gameState.p2Wins++;
+
+            playVictorySound();
+            updateHUD();
+            showVictoryModal();
+
+            if (gameState.mode === 'online' && gameState.roomCode) {
+                syncRoomStateToCloud('game_over');
+            }
+        }
+
+        function showVictoryModal() {
+            const winnerName = getPlayerName(gameState.winner);
+            document.getElementById('winnerTitle').textContent = `¡Victoria de ${winnerName}!`;
+            document.getElementById('winnerReason').textContent = gameState.winReason;
+            document.getElementById('modalP1Name').textContent = gameState.p1Name;
+            document.getElementById('modalP2Name').textContent = gameState.p2Name;
+            document.getElementById('modalP1Score').textContent = gameState.p1Wins;
+            document.getElementById('modalP2Score').textContent = gameState.p2Wins;
+            document.getElementById('victoryModal').classList.remove('hidden');
+        }
+
+        function placeCueBallSafely(targetX, targetY) {
+            const cue = balls[0];
+            let maxX = gameState.isBreakShot ? HEAD_STRING_X : PLAY_RIGHT - BALL_RADIUS - 2;
+            let x = Math.max(PLAY_LEFT + BALL_RADIUS + 2, Math.min(maxX, targetX));
+            let y = Math.max(PLAY_TOP + BALL_RADIUS + 2, Math.min(PLAY_BOTTOM - BALL_RADIUS - 2, targetY));
+
+            // Ensure no overlap with any other ball on the table
+            let overlapping = balls.some(b => b.id !== 0 && !b.potted && Math.hypot(b.x - x, b.y - y) < BALL_RADIUS * 2 + 2);
+            if (!overlapping) {
+                cue.x = x;
+                cue.y = y;
+            }
+        }
+
+        function placeBallAtSpot(ball, spotX, spotY) {
+            let x = spotX;
+            let y = spotY;
+            while (balls.some(b => b.id !== ball.id && !b.potted && Math.hypot(b.x - x, b.y - y) < BALL_RADIUS * 2 + 1)) {
+                x += BALL_RADIUS * 2 + 2;
+                if (x > PLAY_RIGHT - BALL_RADIUS) x = spotX - BALL_RADIUS * 3;
+            }
+            ball.x = x;
+            ball.y = y;
+        }
+
+        // ============================================================================
+        // 7. EXECUTING SHOTS & TRAJECTORY PREDICTION (RAYCAST)
+        // ============================================================================
+        function executeShot(angle, power, spinX, spinY, fromNetwork = false) {
+            if (gameState.isSimulating || gameState.gameOver) return;
+
+            const cue = balls[0];
+            const maxSpeed = 25.5;
+            const speed = Math.max(1.5, power * maxSpeed);
+
+            aimAngle = angle;
+            cueSpin.x = spinX;
+            cueSpin.y = spinY;
+
+            cue.vx = Math.cos(angle) * speed;
+            cue.vy = Math.sin(angle) * speed;
+
+            turnTracker.firstHitBallId = null;
+            turnTracker.pottedBallIds = [];
+            turnTracker.cushionHitsAfterContact = 0;
+
+            gameState.isSimulating = true;
+            gameState.ballInHand = false;
+            gameState.shotSeq++;
+
+            playCueStrikeSound(power);
+            updateHUD();
+
+            if (!fromNetwork && gameState.mode === 'online' && gameState.roomCode) {
+                syncShotToCloud(angle, power, spinX, spinY, cue.x, cue.y);
+            }
+        }
+
+        window.executeShotFromButton = function() {
+            if (!canCurrentPlayerAct()) return;
+            executeShot(aimAngle, shotPower, cueSpin.x, cueSpin.y, false);
+        };
+
+        // Compute predicted first collision for Laser Aim Guide
+        function computeAimPrediction() {
+            const cue = balls[0];
+            if (!cue || cue.potted) return null;
+
+            const dx = Math.cos(aimAngle);
+            const dy = Math.sin(aimAngle);
+
+            let closestDist = 1500;
+            let hitBall = null;
+
+            // Check intersection against all active object balls
+            for (let i = 1; i < balls.length; i++) {
+                const b = balls[i];
+                if (b.potted) continue;
+
+                const fx = b.x - cue.x;
+                const fy = b.y - cue.y;
+                const proj = fx * dx + fy * dy;
+
+                if (proj <= 0) continue; // Behind cue ray
+
+                const perpDistSq = (fx * fx + fy * fy) - (proj * proj);
+                const minDist = BALL_RADIUS * 2;
+                const minDistSq = minDist * minDist;
+
+                if (perpDistSq < minDistSq) {
+                    const offset = Math.sqrt(minDistSq - perpDistSq);
+                    const hitDist = proj - offset;
+                    if (hitDist > 0 && hitDist < closestDist) {
+                        closestDist = hitDist;
+                        hitBall = b;
+                    }
+                }
+            }
+
+            // Check distance to rails if no ball hit before rail
+            let railDist = 1500;
+            if (dx > 0) railDist = Math.min(railDist, (PLAY_RIGHT - BALL_RADIUS - cue.x) / dx);
+            if (dx < 0) railDist = Math.min(railDist, (PLAY_LEFT + BALL_RADIUS - cue.x) / dx);
+            if (dy > 0) railDist = Math.min(railDist, (PLAY_BOTTOM - BALL_RADIUS - cue.y) / dy);
+            if (dy < 0) railDist = Math.min(railDist, (PLAY_TOP + BALL_RADIUS - cue.y) / dy);
+
+            if (!hitBall || railDist < closestDist) {
+                return {
+                    endX: cue.x + dx * railDist,
+                    endY: cue.y + dy * railDist,
+                    hitBall: null
+                };
+            }
+
+            const ghostX = cue.x + dx * closestDist;
+            const ghostY = cue.y + dy * closestDist;
+
+            // Target deflection vector
+            const nx = (hitBall.x - ghostX) / (BALL_RADIUS * 2);
+            const ny = (hitBall.y - ghostY) / (BALL_RADIUS * 2);
+
+            return {
+                endX: ghostX,
+                endY: ghostY,
+                hitBall: hitBall,
+                targetDirX: nx,
+                targetDirY: ny
+            };
+        }
+
+        // ============================================================================
+        // 8. CANVAS RENDERING (TABLE, DIAMONDS, POCKETS, 3D BALLS, CUE & LASER)
+        // ============================================================================
+        function renderTable() {
+            ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+            // 1. Outer Wood Frame
+            const railGrad = ctx.createLinearGradient(0, 0, LOGICAL_W, LOGICAL_H);
+            railGrad.addColorStop(0, '#3b1d11');
+            railGrad.addColorStop(0.5, '#241008');
+            railGrad.addColorStop(1, '#170904');
+            ctx.fillStyle = railGrad;
+            ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+            // Metallic gold/purple trim along rails
+            ctx.strokeStyle = 'rgba(192, 132, 252, 0.35)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(6, 6, LOGICAL_W - 12, LOGICAL_H - 12);
+
+            // 2. Velvet Felt Playfield
+            const feltGrad = ctx.createRadialGradient(
+                LOGICAL_W / 2, LOGICAL_H / 2, 50,
+                LOGICAL_W / 2, LOGICAL_H / 2, LOGICAL_W * 0.65
+            );
+            feltGrad.addColorStop(0, currentFelt.inner);
+            feltGrad.addColorStop(1, currentFelt.outer);
+            ctx.fillStyle = feltGrad;
+            ctx.fillRect(PLAY_LEFT, PLAY_TOP, PLAY_RIGHT - PLAY_LEFT, PLAY_BOTTOM - PLAY_TOP);
+
+            // Cushion shadows
+            ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(PLAY_LEFT, PLAY_TOP, PLAY_RIGHT - PLAY_LEFT, PLAY_BOTTOM - PLAY_TOP);
+
+            // 3. Head String Line & Foot Spot
+            ctx.strokeStyle = currentFelt.line;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(HEAD_STRING_X, PLAY_TOP);
+            ctx.lineTo(HEAD_STRING_X, PLAY_BOTTOM);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Foot Spot Dot
+            ctx.fillStyle = currentFelt.line;
+            ctx.beginPath();
+            ctx.arc(FOOT_SPOT_X, CENTER_Y, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Subtle Watermark on Felt
+            ctx.save();
+            ctx.font = '800 22px Cinzel, serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.textAlign = 'center';
+            ctx.fillText('BELMONT POOL CLUB', LOGICAL_W / 2, CENTER_Y + 7);
+            ctx.restore();
+
+            // 4. Diamond Sights on Rails
+            ctx.fillStyle = '#e9d5ff';
+            const segX = (PLAY_RIGHT - PLAY_LEFT) / 8;
+            for (let i = 1; i <= 7; i++) {
+                if (i === 4) continue; // Middle pocket
+                const dx = PLAY_LEFT + i * segX;
+                drawDiamond(dx, RAIL_SIZE / 2);
+                drawDiamond(dx, LOGICAL_H - RAIL_SIZE / 2);
+            }
+            const segY = (PLAY_BOTTOM - PLAY_TOP) / 4;
+            for (let i = 1; i <= 3; i++) {
+                const dy = PLAY_TOP + i * segY;
+                drawDiamond(RAIL_SIZE / 2, dy);
+                drawDiamond(LOGICAL_W - RAIL_SIZE / 2, dy);
+            }
+
+            // 5. Six Pockets
+            POCKETS.forEach(pk => {
+                // Leather rim
+                ctx.beginPath();
+                ctx.arc(pk.x, pk.y, pk.r + 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#18181b';
+                ctx.fill();
+
+                // Deep hole
+                const pGrad = ctx.createRadialGradient(pk.x, pk.y, 4, pk.x, pk.y, pk.r);
+                pGrad.addColorStop(0, '#000000');
+                pGrad.addColorStop(1, '#09090b');
+                ctx.beginPath();
+                ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI * 2);
+                ctx.fillStyle = pGrad;
+                ctx.fill();
+            });
+
+            // 6. Pocket Drop Animations
+            for (let i = pocketAnimations.length - 1; i >= 0; i--) {
+                const anim = pocketAnimations[i];
+                anim.x += (anim.tx - anim.x) * 0.25;
+                anim.y += (anim.ty - anim.y) * 0.25;
+                anim.scale -= 0.08;
+                if (anim.scale <= 0.1) {
+                    pocketAnimations.splice(i, 1);
+                } else {
+                    drawSingleBall(anim.id, anim.x, anim.y, BALL_RADIUS * anim.scale);
+                }
+            }
+
+            // 7. Active Billiard Balls
+            for (let i = 0; i < balls.length; i++) {
+                const b = balls[i];
+                if (b.potted) continue;
+                drawSingleBall(b.id, b.x, b.y, BALL_RADIUS);
+            }
+
+            // Ball-in-hand Halo around Cue Ball
+            if (gameState.ballInHand && !gameState.isSimulating && !balls[0].potted) {
+                const cue = balls[0];
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cue.x, cue.y, BALL_RADIUS + 7, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // 8. Aiming Laser & Cue Stick (When balls are stationary)
+            if (!gameState.isSimulating && !gameState.gameOver && !balls[0].potted) {
+                drawAimAndCue();
+            }
+        }
+
+        function drawDiamond(x, y) {
+            ctx.beginPath();
+            ctx.moveTo(x, y - 4);
+            ctx.lineTo(x + 4, y);
+            ctx.lineTo(x, y + 4);
+            ctx.lineTo(x - 4, y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawSingleBall(id, x, y, r) {
+            ctx.save();
+
+            // Drop shadow
+            ctx.beginPath();
+            ctx.arc(x + 2.5, y + 3, r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            ctx.fill();
+
+            // Clip to sphere
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.clip();
+
+            const isStripe = id >= 9 && id <= 15;
+            const baseColor = BALL_COLORS[id] || '#ffffff';
+
+            if (isStripe) {
+                // Ivory base for striped balls
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(x - r, y - r, r * 2, r * 2);
+                // Colored middle band
+                ctx.fillStyle = baseColor;
+                ctx.fillRect(x - r, y - r * 0.56, r * 2, r * 1.12);
+            } else {
+                ctx.fillStyle = baseColor;
+                ctx.fillRect(x - r, y - r, r * 2, r * 2);
+            }
+
+            // Number circle on balls 1-15
+            if (id > 0) {
+                ctx.beginPath();
+                ctx.arc(x, y, r * 0.46, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                ctx.fill();
+
+                ctx.fillStyle = '#09090b';
+                ctx.font = `800 ${Math.round(r * 0.56)}px Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(String(id), x, y + 0.5);
+            } else {
+                // Red dot on cue ball
+                ctx.beginPath();
+                ctx.arc(x + cueSpin.x * 4, y + cueSpin.y * 4, 2.2, 0, Math.PI * 2);
+                ctx.fillStyle = '#e11d48';
+                ctx.fill();
+            }
+
+            // 3D Spherical shading & glossy highlight
+            const shade = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+            shade.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+            shade.addColorStop(0.35, 'rgba(255, 255, 255, 0.0)');
+            shade.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+            ctx.fillStyle = shade;
+            ctx.fillRect(x - r, y - r, r * 2, r * 2);
+
+            ctx.restore();
+        }
+
+        function drawAimAndCue() {
+            const cue = balls[0];
+            const pred = computeAimPrediction();
+            const isMyTurn = canCurrentPlayerAct();
+
+            if (pred) {
+                ctx.save();
+                // Check if target ball is legal for shooter to color-code laser
+                let laserColor = 'rgba(255, 255, 255, 0.65)';
+                if (pred.hitBall) {
+                    const shooterGroup = gameState.currentPlayer === 1 ? gameState.p1Group : gameState.p2Group;
+                    const hitGroup = getBallGroup(pred.hitBall.id);
+                    const rem = getRemainingCount(shooterGroup);
+                    if (shooterGroup !== null) {
+                        if ((rem > 0 && hitGroup !== shooterGroup) || (rem === 0 && pred.hitBall.id !== 8)) {
+                            laserColor = 'rgba(239, 68, 68, 0.8)'; // Red warning: foul target!
+                        } else {
+                            laserColor = 'rgba(52, 211, 153, 0.8)'; // Emerald: legal target
+                        }
+                    }
+                }
+
+                // Main aim line
+                ctx.beginPath();
+                ctx.moveTo(cue.x, cue.y);
+                ctx.lineTo(pred.endX, pred.endY);
+                ctx.strokeStyle = laserColor;
+                ctx.lineWidth = 1.8;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Ghost ball circle
+                ctx.beginPath();
+                ctx.arc(pred.endX, pred.endY, BALL_RADIUS, 0, Math.PI * 2);
+                ctx.strokeStyle = laserColor;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Target ball deflection guide
+                if (pred.hitBall) {
+                    ctx.beginPath();
+                    ctx.moveTo(pred.hitBall.x, pred.hitBall.y);
+                    ctx.lineTo(
+                        pred.hitBall.x + pred.targetDirX * 62,
+                        pred.hitBall.y + pred.targetDirY * 62
+                    );
+                    ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+                    ctx.lineWidth = 2.2;
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // Draw Custom Belmont Neon/Obsidian Cue Stick
+            ctx.save();
+            ctx.translate(cue.x, cue.y);
+            ctx.rotate(aimAngle + Math.PI); // Opposite of shot direction
+
+            const pullBack = 18 + shotPower * 65;
+            const cueLength = 250;
+
+            // Cue shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            ctx.fillRect(pullBack, 3, cueLength, 6);
+
+            // Tip (Blue chalk + white ferrule)
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(pullBack, -2.5, 4, 5);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(pullBack + 4, -2.5, 6, 5);
+
+            // Maple shaft
+            const shaftGrad = ctx.createLinearGradient(pullBack + 10, 0, pullBack + cueLength, 0);
+            shaftGrad.addColorStop(0, '#fde68a');
+            shaftGrad.addColorStop(0.5, '#d97706');
+            shaftGrad.addColorStop(0.52, '#581c87'); // Belmont purple grip
+            shaftGrad.addColorStop(1, '#09090b');
+
+            ctx.beginPath();
+            ctx.moveTo(pullBack + 10, -2.5);
+            ctx.lineTo(pullBack + cueLength, -5);
+            ctx.lineTo(pullBack + cueLength, 5);
+            ctx.lineTo(pullBack + 10, 2.5);
+            ctx.closePath();
+            ctx.fillStyle = shaftGrad;
+            ctx.fill();
+
+            if (!isMyTurn) {
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // ============================================================================
+        // 9. INTERACTIVE CONTROLS (MOUSE & TOUCH AIM, BALL IN HAND, POWER, SPIN)
+        // ============================================================================
+        function getCanvasCoords(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+            const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+            return {
+                x: (clientX - rect.left) * (LOGICAL_W / rect.width),
+                y: (clientY - rect.top) * (LOGICAL_H / rect.height)
+            };
+        }
+
+        canvas.addEventListener('pointerdown', (e) => {
+            if (!canCurrentPlayerAct()) return;
+            const pos = getCanvasCoords(e);
+            const cue = balls[0];
+
+            // Check if grabbing cue ball during Ball-in-Hand
+            if (gameState.ballInHand && Math.hypot(pos.x - cue.x, pos.y - cue.y) < BALL_RADIUS * 2.4) {
+                isDraggingCueBall = true;
+                return;
+            }
+
+            isDraggingAim = true;
+            aimAngle = Math.atan2(pos.y - cue.y, pos.x - cue.x);
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!canCurrentPlayerAct()) return;
+
+            if (isDraggingCueBall) {
+                const pos = getCanvasCoords(e);
+                placeCueBallSafely(pos.x, pos.y);
+                throttledAimSync();
+                return;
+            }
+
+            if (isDraggingAim) {
+                const pos = getCanvasCoords(e);
+                const cue = balls[0];
+                aimAngle = Math.atan2(pos.y - cue.y, pos.x - cue.x);
+                throttledAimSync();
+            }
+        });
+
+        window.addEventListener('pointerup', () => {
+            isDraggingCueBall = false;
+            isDraggingAim = false;
+        });
+
+        // Fine Aim Buttons
+        window.startFineAim = function(dir) {
+            if (!canCurrentPlayerAct()) return;
+            stopFineAim();
+            aimAngle += dir * 0.008;
+            fineAimInterval = setInterval(() => {
+                aimAngle += dir * 0.008;
+                throttledAimSync();
+            }, 25);
+        };
+
+        window.stopFineAim = function() {
+            if (fineAimInterval) {
+                clearInterval(fineAimInterval);
+                fineAimInterval = null;
+            }
+        };
+
+        // Power Bar Interaction
+        const powerBarContainer = document.getElementById('powerBarContainer');
+        function updatePowerFromEvent(e) {
+            const rect = powerBarContainer.getBoundingClientRect();
+            const isVertical = window.innerWidth >= 1024;
+            let ratio;
+            if (isVertical) {
+                ratio = (e.clientY - rect.top) / rect.height;
+            } else {
+                ratio = (e.clientX - rect.left) / rect.width;
+            }
+            shotPower = Math.max(0.06, Math.min(1.0, ratio));
+            updatePowerUI();
+            throttledAimSync();
+        }
+
+        function updatePowerUI() {
+            const pct = Math.round(shotPower * 100);
+            const fill = document.getElementById('powerBarFill');
+            fill.style.width = `${pct}%`;
+            fill.style.height = `${pct}%`;
+            document.getElementById('powerValueText').textContent = `${pct}%`;
+        }
+        updatePowerUI();
+
+        powerBarContainer.addEventListener('pointerdown', (e) => {
+            if (!canCurrentPlayerAct()) return;
+            isDraggingPower = true;
+            updatePowerFromEvent(e);
+        });
+        window.addEventListener('pointermove', (e) => {
+            if (isDraggingPower) updatePowerFromEvent(e);
+        });
+        window.addEventListener('pointerup', () => {
+            isDraggingPower = false;
+        });
+
+        // Spin / English Selector Interaction
+        const spinSelector = document.getElementById('spinSelector');
+        spinSelector.addEventListener('pointerdown', (e) => {
+            if (!canCurrentPlayerAct()) return;
+            const rect = spinSelector.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const maxR = rect.width / 2 - 6;
+
+            let dx = (e.clientX - cx) / maxR;
+            let dy = (e.clientY - cy) / maxR;
+            const mag = Math.hypot(dx, dy);
+            if (mag > 1) {
+                dx /= mag;
+                dy /= mag;
+            }
+            cueSpin.x = dx;
+            cueSpin.y = dy;
+            updateSpinUI();
+        });
+
+        function updateSpinUI() {
+            const dot = document.getElementById('spinDot');
+            dot.style.transform = `translate(${cueSpin.x * 14}px, ${cueSpin.y * 14}px)`;
+        }
+
+        window.resetSpin = function() {
+            cueSpin.x = 0;
+            cueSpin.y = 0;
+            updateSpinUI();
+        };
+
+        // ============================================================================
+        // 10. HUD & SCOREBOARD UPDATER
+        // ============================================================================
+        function updateHUD() {
+            // Player Names & Avatars
+            document.getElementById('p1NameDisplay').textContent = gameState.p1Name;
+            document.getElementById('p2NameDisplay').textContent = gameState.p2Name;
+            document.getElementById('p1Avatar').textContent = gameState.p1Name.charAt(0).toUpperCase();
+            document.getElementById('p2Avatar').textContent = gameState.p2Name.charAt(0).toUpperCase();
+
+            // Wins
+            document.getElementById('p1Wins').textContent = gameState.p1Wins;
+            document.getElementById('p2Wins').textContent = gameState.p2Wins;
+
+            // Active Turn Highlight
+            const p1Card = document.getElementById('p1Card');
+            const p2Card = document.getElementById('p2Card');
+            const p1Dot = document.getElementById('p1TurnDot');
+            const p2Dot = document.getElementById('p2TurnDot');
+
+            if (gameState.currentPlayer === 1) {
+                p1Card.classList.add('active-turn-card');
+                p2Card.classList.remove('active-turn-card');
+                p1Dot.classList.remove('hidden');
+                p2Dot.classList.add('hidden');
+            } else {
+                p2Card.classList.add('active-turn-card');
+                p1Card.classList.remove('active-turn-card');
+                p2Dot.classList.remove('hidden');
+                p1Dot.classList.add('hidden');
+            }
+
+            // Group Badges & Ball Trays
+            renderPlayerTray(1, gameState.p1Group, 'p1GroupBadge', 'p1BallTray');
+            renderPlayerTray(2, gameState.p2Group, 'p2GroupBadge', 'p2BallTray');
+
+            // Status Banner & Ball-in-Hand Badge
+            document.getElementById('gameStatusBanner').textContent = gameState.statusMessage;
+            const bihBadge = document.getElementById('ballInHandBadge');
+            if (gameState.ballInHand && !gameState.isSimulating) {
+                bihBadge.classList.remove('hidden');
+                bihBadge.classList.add('flex');
+            } else {
+                bihBadge.classList.add('hidden');
+                bihBadge.classList.remove('flex');
+            }
+
+            // Shoot Button State
+            const shootBtn = document.getElementById('shootBtn');
+            shootBtn.disabled = !canCurrentPlayerAct();
+            shootBtn.style.opacity = canCurrentPlayerAct() ? '1' : '0.4';
+        }
+
+        function renderPlayerTray(slot, group, badgeElId, trayElId) {
+            const badge = document.getElementById(badgeElId);
+            const tray = document.getElementById(trayElId);
+
+            if (!group) {
+                badge.textContent = 'Mesa Abierta';
+                tray.innerHTML = `<span class="text-[10px] text-zinc-400 italic">Emboque una bola para asignar grupo</span>`;
+                return;
+            }
+
+            const isSolids = group === 'solids';
+            badge.textContent = isSolids ? 'Lisas (1 - 7)' : 'Rayadas (9 - 15)';
+
+            const startId = isSolids ? 1 : 9;
+            const endId = isSolids ? 7 : 15;
+            let remainingBalls = [];
+
+            for (let id = startId; id <= endId; id++) {
+                const b = balls.find(x => x.id === id);
+                if (b && !b.potted) remainingBalls.push(id);
+            }
+
+            if (remainingBalls.length === 0) {
+                badge.textContent = '¡Objetivo: Bola 8!';
+                tray.innerHTML = `
+                    <div class="w-5 h-5 rounded-full bg-black border border-amber-400 flex items-center justify-center text-[10px] font-extrabold text-white shadow">8</div>
+                    <span class="text-[11px] font-bold text-amber-300">¡Emboca la Bola 8!</span>
+                `;
+                return;
+            }
+
+            tray.innerHTML = remainingBalls.map(id => {
+                const col = BALL_COLORS[id];
+                const stripeStyle = isSolids
+                    ? `background: ${col};`
+                    : `background: linear-gradient(to bottom, #f8fafc 20%, ${col} 20%, ${col} 80%, #f8fafc 80%);`;
+                return `<div class="w-5 h-5 rounded-full border border-white/40 flex items-center justify-center text-[9px] font-extrabold text-black shadow-sm shrink-0" style="${stripeStyle}">
+                    <span class="bg-white/90 rounded-full w-3.5 h-3.5 flex items-center justify-center">${id}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // ============================================================================
+        // 11. FLOATING REACTIONS & EMOJIS
+        // ============================================================================
+        function displayFloatingReaction(emoji, text, senderName) {
+            const container = document.getElementById('emojiOverlay');
+            const el = document.createElement('div');
+            el.className = 'floating-emoji absolute bottom-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-zinc-950/90 border border-purple-500/60 shadow-2xl flex items-center gap-2.5';
+            el.innerHTML = `
+                <span class="text-2xl">${emoji}</span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-purple-300 block">${senderName}</span>
+                    <span class="text-xs font-semibold text-white">${text}</span>
+                </div>
+            `;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 2500);
+        }
+
+        window.sendReaction = async function(emoji, text) {
+            const sender = gameState.mode === 'online'
+                ? getPlayerName(gameState.myPlayerSlot)
+                : getPlayerName(gameState.currentPlayer);
+
+            displayFloatingReaction(emoji, text, sender);
+
+            if (gameState.mode === 'online' && gameState.roomCode && db && currentUser) {
+                try {
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pool_rooms', gameState.roomCode);
+                    await updateDoc(roomRef, {
+                        reaction: {
+                            emoji,
+                            text,
+                            sender,
+                            ts: Date.now()
+                        }
+                    });
+                } catch (err) {
+                    console.error('Reaction sync error:', err);
+                }
+            }
+        };
+
+        // ============================================================================
+        // 12. FIREBASE REALTIME ONLINE ROOMS (RULE 1, 2 & 3 COMPLIANT)
+        // ============================================================================
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'belmont-pool-club';
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let roomUnsubscribe = null;
+        let lastProcessedShotSeq = 0;
+        let lastReactionTs = 0;
+
+        async function initFirebase() {
+            const statusDot = document.getElementById('firebaseStatusDot');
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                    statusDot.textContent = 'Modo Local Activo';
+                    return;
+                }
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // RULE 3: Authenticate FIRST before any Firestore call
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user) {
+                        statusDot.textContent = 'Servidor Online Listo';
+                        statusDot.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+                    }
+                });
+            } catch (err) {
+                console.warn('Firebase init note:', err);
+                statusDot.textContent = 'Modo Local';
+            }
+        }
+
+        function serializeBalls() {
+            return JSON.stringify(balls.map(b => ({
+                id: b.id,
+                x: Number(b.x.toFixed(2)),
+                y: Number(b.y.toFixed(2)),
+                potted: b.potted
+            })));
+        }
+
+        function deserializeBalls(jsonStr) {
+            try {
+                const parsed = JSON.parse(jsonStr);
+                if (Array.isArray(parsed) && parsed.length === 16) {
+                    balls = parsed.map(b => ({
+                        id: b.id,
+                        x: b.x,
+                        y: b.y,
+                        vx: 0,
+                        vy: 0,
+                        potted: b.potted
+                    }));
+                }
+            } catch (e) {
+                console.error('Error parsing balls:', e);
+            }
+        }
+
+        window.openLobbyModal = function() {
+            document.getElementById('inputP1Name').value = gameState.p1Name;
+            document.getElementById('inputP2Name').value = gameState.p2Name;
+            document.getElementById('lobbyModal').classList.remove('hidden');
+        };
+
+        window.closeLobbyModal = function() {
+            document.getElementById('lobbyModal').classList.add('hidden');
+        };
+
+        function applyCustomNamesFromInputs() {
+            const n1 = document.getElementById('inputP1Name').value.trim() || 'Edward';
+            const n2 = document.getElementById('inputP2Name').value.trim() || 'Alejandra';
+            gameState.p1Name = n1;
+            gameState.p2Name = n2;
+            updateHUD();
+        }
+
+        window.startLocalMode = function() {
+            applyCustomNamesFromInputs();
+            if (roomUnsubscribe) {
+                roomUnsubscribe();
+                roomUnsubscribe = null;
+            }
+            gameState.mode = 'local';
+            gameState.roomCode = null;
+            document.getElementById('roomCodeBadge').classList.add('hidden');
+            document.getElementById('modeStatusBadge').textContent = `Modo Local • ${gameState.p1Name} vs ${gameState.p2Name}`;
+            resetMatch(1);
+            closeLobbyModal();
+        };
+
+        window.createOnlineRoom = async function() {
+            applyCustomNamesFromInputs();
+            const feedback = document.getElementById('lobbyFeedback');
+            feedback.classList.remove('hidden');
+
+            if (!db || !currentUser) {
+                feedback.textContent = 'Conectando con el servidor... intenta en un segundo.';
+                return;
+            }
+
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+
+            gameState.mode = 'online';
+            gameState.roomCode = code;
+            gameState.myPlayerSlot = 1;
+            resetMatch(1);
+
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pool_rooms', code);
+            await setDoc(roomRef, {
+                roomCode: code,
+                p1Name: gameState.p1Name,
+                p2Name: gameState.p2Name,
+                p1Wins: 0,
+                p2Wins: 0,
+                currentPlayer: 1,
+                p1Group: null,
+                p2Group: null,
+                isBreakShot: true,
+                ballInHand: true,
+                gameOver: false,
+                winner: null,
+                winReason: '',
+                statusMessage: gameState.statusMessage,
+                ballsJson: serializeBalls(),
+                aimAngle: aimAngle,
+                shotPower: shotPower,
+                cueX: balls[0].x,
+                cueY: balls[0].y,
+                lastShot: null,
+                updatedAt: Date.now()
+            });
+
+            subscribeToRoom(code);
+            document.getElementById('roomCodeBadge').classList.remove('hidden');
+            document.getElementById('roomCodeText').textContent = code;
+            document.getElementById('modeStatusBadge').textContent = `Sala Online #${code} • Eres ${gameState.p1Name} (J1)`;
+            feedback.textContent = `¡Sala ${code} creada! Comparte el código con ${gameState.p2Name}.`;
+            setTimeout(() => closeLobbyModal(), 900);
+        };
+
+        window.joinOnlineRoom = async function() {
+            applyCustomNamesFromInputs();
+            const feedback = document.getElementById('lobbyFeedback');
+            feedback.classList.remove('hidden');
+
+            if (!db || !currentUser) {
+                feedback.textContent = 'Conectando con el servidor...';
+                return;
+            }
+
+            const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+            if (code.length !== 4) {
+                feedback.textContent = 'Ingresa un código válido de 4 caracteres.';
+                return;
+            }
+
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pool_rooms', code);
+            const snap = await getDoc(roomRef);
+
+            if (!snap.exists()) {
+                feedback.textContent = `No se encontró la sala "${code}". Verifica el código.`;
+                return;
+            }
+
+            gameState.mode = 'online';
+            gameState.roomCode = code;
+            gameState.myPlayerSlot = 2;
+
+            await updateDoc(roomRef, {
+                p2Name: gameState.p2Name,
+                updatedAt: Date.now()
+            });
+
+            subscribeToRoom(code);
+            document.getElementById('roomCodeBadge').classList.remove('hidden');
+            document.getElementById('roomCodeText').textContent = code;
+            document.getElementById('modeStatusBadge').textContent = `Sala Online #${code} • Eres ${gameState.p2Name} (J2)`;
+            closeLobbyModal();
+        };
+
+        function subscribeToRoom(code) {
+            if (roomUnsubscribe) roomUnsubscribe();
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pool_rooms', code);
+
+            roomUnsubscribe = onSnapshot(roomRef, (snapshot) => {
+                if (!snapshot.exists()) return;
+                const data = snapshot.data();
+
+                gameState.p1Name = data.p1Name || 'Edward';
+                gameState.p2Name = data.p2Name || 'Alejandra';
+                gameState.p1Wins = data.p1Wins || 0;
+                gameState.p2Wins = data.p2Wins || 0;
+
+                // Handle live emoji reactions
+                if (data.reaction && data.reaction.ts > lastReactionTs) {
+                    lastReactionTs = data.reaction.ts;
+                    const myName = getPlayerName(gameState.myPlayerSlot);
+                    if (data.reaction.sender !== myName) {
+                        displayFloatingReaction(data.reaction.emoji, data.reaction.text, data.reaction.sender);
+                    }
+                }
+
+                // If opponent executed a shot, simulate it locally for smooth visuals!
+                if (data.lastShot && data.lastShot.seq > lastProcessedShotSeq) {
+                    lastProcessedShotSeq = data.lastShot.seq;
+                    if (data.lastShot.shooter !== gameState.myPlayerSlot && !gameState.isSimulating) {
+                        balls[0].x = data.lastShot.cueX;
+                        balls[0].y = data.lastShot.cueY;
+                        executeShot(
+                            data.lastShot.angle,
+                            data.lastShot.power,
+                            data.lastShot.spinX,
+                            data.lastShot.spinY,
+                            true
+                        );
+                        return;
+                    }
+                }
+
+                // Sync authoritative board state when not simulating
+                if (!gameState.isSimulating) {
+                    if (data.ballsJson && data.currentPlayer === gameState.myPlayerSlot) {
+                        deserializeBalls(data.ballsJson);
+                    } else if (data.ballsJson && data.lastEvent === 'reset') {
+                        deserializeBalls(data.ballsJson);
+                        document.getElementById('victoryModal').classList.add('hidden');
+                    }
+
+                    // Sync opponent's live aim & cue ball placement
+                    if (data.currentPlayer !== gameState.myPlayerSlot) {
+                        if (typeof data.aimAngle === 'number') aimAngle = data.aimAngle;
+                        if (typeof data.shotPower === 'number') {
+                            shotPower = data.shotPower;
+                            updatePowerUI();
+                        }
+                        if (typeof data.cueX === 'number' && typeof data.cueY === 'number' && !balls[0].potted) {
+                            balls[0].x = data.cueX;
+                            balls[0].y = data.cueY;
+                        }
+                    }
+
+                    gameState.currentPlayer = data.currentPlayer;
+                    gameState.p1Group = data.p1Group;
+                    gameState.p2Group = data.p2Group;
+                    gameState.isBreakShot = data.isBreakShot;
+                    gameState.ballInHand = data.ballInHand;
+                    gameState.statusMessage = data.statusMessage || gameState.statusMessage;
+
+                    if (data.gameOver && !gameState.gameOver) {
+                        gameState.gameOver = true;
+                        gameState.winner = data.winner;
+                        gameState.winReason = data.winReason;
+                        playVictorySound();
+                        showVictoryModal();
+                    } else if (!data.gameOver) {
+                        gameState.gameOver = false;
+                    }
+
+                    updateHUD();
+                }
+            }, (error) => {
+                console.error('Firestore listener error:', error);
+            });
+        }
+
+        let lastAimSyncTime = 0;
+        async function throttledAimSync() {
+            if (gameState.mode !== 'online' || !gameState.roomCode || !db || !currentUser) return;
+            if (!canCurrentPlayerAct()) return;
+
+            const now = Date.now();
+            if (now - lastAimSyncTime < 120) return;
+            lastAimSyncTime = now;
+
+            try {
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pool_rooms', gameState.roomCode);
+                await updateDoc(roomRef, {
+                    aimAngle: aimAngle,
+                    shotPower: shotPower,
+                    cueX: balls[0].x,
+                    cueY: balls[0].y
+                });
+            } catch (e) {}
+        }
+
+        async function syncShotToCloud(angle, power, spinX, spinY, cueX, cueY) {
+            if (!db || !currentUser || !gameState.roomCode) return;
+            try {
+                lastProcessedShotSeq = gameState.shotSeq;
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pool_rooms', gameState.roomCode);
+                await updateDoc(roomRef, {
+                    lastShot: {
+                        seq: gameState.shotSeq,
+                        shooter: gameState.myPlayerSlot,
+                        angle,
+                        power,
+                        spinX,
+                        spinY,
+                        cueX,
+                        cueY
+                    },
+                    updatedAt: Date.now()
+                });
+            } catch (e) {
+                console.error('Shot sync error:', e);
+            }
+        }
+
+        async function syncRoomStateToCloud(eventType) {
+            if (!db || !currentUser || !gameState.roomCode) return;
+            try {
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pool_rooms', gameState.roomCode);
+                await updateDoc(roomRef, {
+                    currentPlayer: gameState.currentPlayer,
+                    p1Wins: gameState.p1Wins,
+                    p2Wins: gameState.p2Wins,
+                    p1Group: gameState.p1Group,
+                    p2Group: gameState.p2Group,
+                    isBreakShot: gameState.isBreakShot,
+                    ballInHand: gameState.ballInHand,
+                    gameOver: gameState.gameOver,
+                    winner: gameState.winner,
+                    winReason: gameState.winReason,
+                    statusMessage: gameState.statusMessage,
+                    ballsJson: serializeBalls(),
+                    cueX: balls[0].x,
+                    cueY: balls[0].y,
+                    lastEvent: eventType,
+                    updatedAt: Date.now()
+                });
+            } catch (e) {
+                console.error('State sync error:', e);
+            }
+        }
+
+        window.copyRoomCode = function() {
+            if (!gameState.roomCode) return;
+            const temp = document.createElement('textarea');
+            temp.value = gameState.roomCode;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            displayFloatingReaction('📋', `Código ${gameState.roomCode} copiado`, 'Sistema');
+        };
+
+        // ============================================================================
+        // 13. MAIN ANIMATION LOOP
+        // ============================================================================
+        function gameLoop() {
+            stepPhysics();
+            renderTable();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function() {
+            initFirebase();
+            resetMatch(1);
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
