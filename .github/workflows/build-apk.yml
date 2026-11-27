@@ -24,7 +24,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 4. Preparar proyecto Capacitor y empaquetar HTML
+      - name: 4. Preparar proyecto Capacitor
         run: |
           mkdir -p www
           if [ -f "index.html" ]; then
@@ -34,7 +34,7 @@ jobs:
             if [ -n "$FIRST_HTML" ]; then
               cp "$FIRST_HTML" www/index.html
             else
-              echo "ERROR: No se encontro index.html en la raiz del repositorio."
+              echo "ERROR: No se encontro index.html en el repositorio."
               exit 1
             fi
           fi
@@ -50,63 +50,73 @@ jobs:
           EOF
 
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-
           npx cap init "Belmont Pool Club" "com.edwardbelmont.poolclub" --web-dir www
           npx cap add android
-          npx cap copy android
 
-      - name: 5. Generar Icono Bola 8, Splash y Optimizar AndroidManifest
+      - name: 5. Activar Fullscreen Inmersivo Nativo, Icono Bola 8 y Manifest
         run: |
           python3 -m pip install pillow --break-system-packages || pip install pillow
-          cat << 'EOF' > setup_android_assets.py
+          cat << 'EOF' > configure_android.py
           import os
+          import re
           from PIL import Image, ImageDraw, ImageFilter
 
+          # 1. Asegurar viewport-fit=cover en www/index.html para cubrir el area de la camara
+          html_path = "www/index.html"
+          with open(html_path, "r", encoding="utf-8") as f:
+              html = f.read()
+          if "viewport-fit=cover" not in html:
+              html = re.sub(
+                  r'(<meta[^>]*name=["\']viewport["\'][^>]*content=["\'])([^"\']*)',
+                  r'\1\2, viewport-fit=cover',
+                  html,
+                  count=1,
+                  flags=re.IGNORECASE,
+              )
+              with open(html_path, "w", encoding="utf-8") as f:
+                  f.write(html)
+
+          # 2. Generar icono Bola 8 y Splash
           def create_8ball_icon(size=1024, is_foreground=False):
               bg_color = (0, 0, 0, 0) if is_foreground else (11, 7, 20, 255)
               img = Image.new("RGBA", (size, size), bg_color)
-              draw = ImageDraw.Draw(img)
-
               scale = 0.66 if is_foreground else 1.0
               offset = int(size * (1.0 - scale) / 2)
               s = int(size * scale)
 
               ball_layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-              bdraw = ImageDraw.Draw(ball_layer)
-
               glow = Image.new("RGBA", (s, s), (0, 0, 0, 0))
               gdraw = ImageDraw.Draw(glow)
-              gdraw.ellipse((s*0.08, s*0.08, s*0.92, s*0.92), fill=(147, 51, 234, 150))
-              gdraw.ellipse((s*0.14, s*0.14, s*0.86, s*0.86), fill=(192, 132, 252, 180))
-              glow = glow.filter(ImageFilter.GaussianBlur(radius=s*0.05))
+              gdraw.ellipse((s * 0.08, s * 0.08, s * 0.92, s * 0.92), fill=(147, 51, 234, 150))
+              gdraw.ellipse((s * 0.14, s * 0.14, s * 0.86, s * 0.86), fill=(192, 132, 252, 180))
+              glow = glow.filter(ImageFilter.GaussianBlur(radius=s * 0.05))
               ball_layer = Image.alpha_composite(ball_layer, glow)
               bdraw = ImageDraw.Draw(ball_layer)
 
               margin = int(s * 0.14)
-              bdraw.ellipse((margin-6, margin-6, s-margin+6, s-margin+6), fill=(168, 85, 247, 255))
-              bdraw.ellipse((margin, margin, s-margin, s-margin), fill=(12, 10, 18, 255))
+              bdraw.ellipse((margin - 6, margin - 6, s - margin + 6, s - margin + 6), fill=(168, 85, 247, 255))
+              bdraw.ellipse((margin, margin, s - margin, s - margin), fill=(12, 10, 18, 255))
 
               shine = Image.new("RGBA", (s, s), (0, 0, 0, 0))
               sdraw = ImageDraw.Draw(shine)
-              sdraw.ellipse((int(s*0.24), int(s*0.20), int(s*0.52), int(s*0.40)), fill=(255, 255, 255, 55))
-              shine = shine.filter(ImageFilter.GaussianBlur(radius=s*0.02))
+              sdraw.ellipse((int(s * 0.24), int(s * 0.20), int(s * 0.52), int(s * 0.40)), fill=(255, 255, 255, 55))
+              shine = shine.filter(ImageFilter.GaussianBlur(radius=s * 0.02))
               ball_layer = Image.alpha_composite(ball_layer, shine)
               bdraw = ImageDraw.Draw(ball_layer)
 
               c_margin = int(s * 0.33)
-              bdraw.ellipse((c_margin-5, c_margin-5, s-c_margin+5, s-c_margin+5), fill=(147, 51, 234, 255))
-              bdraw.ellipse((c_margin, c_margin, s-c_margin, s-c_margin), fill=(248, 250, 252, 255))
+              bdraw.ellipse((c_margin - 5, c_margin - 5, s - c_margin + 5, s - c_margin + 5), fill=(147, 51, 234, 255))
+              bdraw.ellipse((c_margin, c_margin, s - c_margin, s - c_margin), fill=(248, 250, 252, 255))
 
               cx, cy = s // 2, s // 2
               r_top = int(s * 0.065)
               r_bot = int(s * 0.078)
               stroke = max(2, int(s * 0.032))
 
-              bdraw.ellipse((cx - r_top, cy - r_top*2 + 4, cx + r_top, cy + 4), fill=(18, 12, 34, 255))
-              bdraw.ellipse((cx - r_top + stroke, cy - r_top*2 + 4 + stroke, cx + r_top - stroke, cy + 4 - stroke), fill=(248, 250, 252, 255))
-
-              bdraw.ellipse((cx - r_bot, cy - 4, cx + r_bot, cy + r_bot*2 - 4), fill=(18, 12, 34, 255))
-              bdraw.ellipse((cx - r_bot + stroke, cy - 4 + stroke, cx + r_bot - stroke, cy + r_bot*2 - 4 - stroke), fill=(248, 250, 252, 255))
+              bdraw.ellipse((cx - r_top, cy - r_top * 2 + 4, cx + r_top, cy + 4), fill=(18, 12, 34, 255))
+              bdraw.ellipse((cx - r_top + stroke, cy - r_top * 2 + 4 + stroke, cx + r_top - stroke, cy + 4 - stroke), fill=(248, 250, 252, 255))
+              bdraw.ellipse((cx - r_bot, cy - 4, cx + r_bot, cy + r_bot * 2 - 4), fill=(18, 12, 34, 255))
+              bdraw.ellipse((cx - r_bot + stroke, cy - 4 + stroke, cx + r_bot - stroke, cy + r_bot * 2 - 4 - stroke), fill=(248, 250, 252, 255))
 
               img.paste(ball_layer, (offset, offset), ball_layer)
               return img
@@ -115,7 +125,7 @@ jobs:
           icon_fg = create_8ball_icon(1024, is_foreground=True)
 
           res_dir = "android/app/src/main/res"
-          for root, dirs, files in os.walk(res_dir):
+          for root, _, files in os.walk(res_dir):
               for file in files:
                   full_path = os.path.join(root, file)
                   if file in ("ic_launcher.png", "ic_launcher_round.png"):
@@ -140,6 +150,112 @@ jobs:
               with open(bg_xml, "w", encoding="utf-8") as f:
                   f.write('<?xml version="1.0" encoding="utf-8"?><resources><color name="ic_launcher_background">#0B0714</color></resources>')
 
+          # 3. Configurar styles.xml para pantalla completa real (sin barra blanca ni franja de camara)
+          styles_xml = '''<?xml version="1.0" encoding="utf-8"?>
+          <resources xmlns:tools="http://schemas.android.com/tools">
+              <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+                  <item name="colorPrimary">#0B0714</item>
+                  <item name="colorPrimaryDark">#0B0714</item>
+                  <item name="colorAccent">#9333EA</item>
+                  <item name="android:windowBackground">#0B0714</item>
+              </style>
+
+              <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:windowBackground">#0B0714</item>
+                  <item name="android:statusBarColor">@android:color/transparent</item>
+                  <item name="android:navigationBarColor">@android:color/transparent</item>
+                  <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
+              </style>
+
+              <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+                  <item name="android:background">@drawable/splash</item>
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
+              </style>
+          </resources>'''
+          with open(os.path.join(res_dir, "values", "styles.xml"), "w", encoding="utf-8") as f:
+              f.write(styles_xml.strip() + "\n")
+
+          # 4. Escribir MainActivity.java con Modo Inmersivo Sticky + Cutout Always/ShortEdges
+          main_activity_java = '''package com.edwardbelmont.poolclub;
+
+          import android.graphics.Color;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.view.View;
+          import android.view.WindowManager;
+          import androidx.core.view.WindowCompat;
+          import androidx.core.view.WindowInsetsCompat;
+          import androidx.core.view.WindowInsetsControllerCompat;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                  getWindow().getDecorView().setBackgroundColor(Color.parseColor("#0B0714"));
+                  if (getBridge() != null && getBridge().getWebView() != null) {
+                      getBridge().getWebView().setBackgroundColor(Color.parseColor("#0B0714"));
+                  }
+                  enableFullscreen();
+              }
+
+              @Override
+              public void onWindowFocusChanged(boolean hasFocus) {
+                  super.onWindowFocusChanged(hasFocus);
+                  if (hasFocus) {
+                      enableFullscreen();
+                  }
+              }
+
+              @Override
+              public void onResume() {
+                  super.onResume();
+                  enableFullscreen();
+              }
+
+              private void enableFullscreen() {
+                  WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+                  getWindow().setStatusBarColor(Color.TRANSPARENT);
+                  getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                      WindowManager.LayoutParams lp = getWindow().getAttributes();
+                      lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+                      getWindow().setAttributes(lp);
+                  } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                      WindowManager.LayoutParams lp = getWindow().getAttributes();
+                      lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                      getWindow().setAttributes(lp);
+                  }
+
+                  WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+                  if (controller != null) {
+                      controller.hide(WindowInsetsCompat.Type.systemBars());
+                      controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                  }
+
+                  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                      getWindow().getDecorView().setSystemUiVisibility(
+                          View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                          | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                          | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                          | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                          | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                          | View.SYSTEM_UI_FLAG_FULLSCREEN
+                      );
+                  }
+              }
+          }'''
+          main_activity_path = "android/app/src/main/java/com/edwardbelmont/poolclub/MainActivity.java"
+          with open(main_activity_path, "w", encoding="utf-8") as f:
+              f.write(main_activity_java.strip() + "\n")
+
+          # 5. Parchear AndroidManifest.xml
           manifest_path = "android/app/src/main/AndroidManifest.xml"
           with open(manifest_path, "r", encoding="utf-8") as f:
               content = f.read()
@@ -167,11 +283,12 @@ jobs:
           with open(manifest_path, "w", encoding="utf-8") as f:
               f.write(content)
 
-          print("Iconos, Splash y AndroidManifest configurados con exito.")
+          print("Fullscreen inmersivo nativo, iconos y manifest configurados.")
           EOF
-          python3 setup_android_assets.py
+          python3 configure_android.py
+          npx cap copy android
 
-      - name: 6. Compilar APK instalable (Debug firmado automaticamente)
+      - name: 6. Compilar APK instalable
         working-directory: ./android
         run: |
           chmod +x gradlew
